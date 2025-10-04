@@ -53,31 +53,7 @@ public class HealthMetricService {
                 .collect(Collectors.toList());
     }
 
-    public List<com.example.app.dto.HealthTrendDTO> getDailyTrends(Long userId, LocalDate startDate, LocalDate endDate) {
-        List<HealthMetric> metrics = healthMetricRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
-        return metrics.stream()
-                .collect(Collectors.groupingBy(HealthMetric::getDate))
-                .entrySet().stream()
-                .map(entry -> {
-                    List<HealthMetric> dayMetrics = entry.getValue();
-                    return new com.example.app.dto.HealthTrendDTO(
-                            entry.getKey(),
-                            dayMetrics.stream().filter(m -> m.getCaloriesIntake() != null)
-                                    .mapToDouble(m -> m.getCaloriesIntake().doubleValue()).average().orElse(0),
-                            dayMetrics.stream().filter(m -> m.getExerciseMinutes() != null)
-                                    .mapToDouble(m -> m.getExerciseMinutes().doubleValue()).average().orElse(0),
-                            dayMetrics.stream().filter(m -> m.getWeight() != null)
-                                    .mapToDouble(HealthMetric::getWeight).average().orElse(0),
-                            dayMetrics.stream().filter(m -> m.getSleepHours() != null)
-                                    .mapToDouble(m -> m.getSleepHours().doubleValue()).average().orElse(0),
-                            dayMetrics.stream().filter(m -> m.getWaterIntake() != null)
-                                    .mapToDouble(m -> m.getWaterIntake().doubleValue()).average().orElse(0),
-                            dayMetrics.stream().mapToDouble(m -> m.getHealthScore().doubleValue()).average().orElse(0)
-                    );
-                })
-                .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
-                .collect(Collectors.toList());
-    }
+
 
     public List<com.example.app.dto.HealthTrendDTO> getWeeklyTrends(Long userId, LocalDate startDate, LocalDate endDate) {
         List<HealthMetric> metrics = healthMetricRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
