@@ -1,0 +1,211 @@
+@startuml HealthConnectBackend
+
+' Controller Layer
+package controller {
+    class UserController {
+        - userService: UserService
+        + UserController(UserService)
+        + getAllUsers(int, int): ResponseEntity<Page<UserDTO>>
+        + getUserById(Long): ResponseEntity<UserDTO>
+        + updateUser(Long, Map): ResponseEntity<UserDTO>
+        + deleteUser(Long): ResponseEntity<Void>
+    }
+}
+
+' Service Layer
+package service {
+    class UserService {
+        - userRepository: UserRepository
+        - htmlSanitizer: HtmlSanitizer
+        - passwordEncoder: PasswordEncoder
+        + UserService(UserRepository, HtmlSanitizer, PasswordEncoder)
+        + findByEmail(String): Optional<User>
+        + createUser(String, String, String, Role): User
+        + updateUser(Long, String, String): User
+        + findByRole(Role): List<User>
+        + getAllUsers(): List<UserDTO>
+        + getUserById(Long): Optional<UserDTO>
+        + deleteUser(Long): void
+    }
+
+    class SessionService {
+        - sessionRepository: UserSessionRepository
+        + SessionService(UserSessionRepository)
+        + createOrUpdateSession(Long, String): void
+        + updateActivity(String): void
+        + isSessionValid(String): boolean
+        + getSessionByToken(String): Optional<UserSession>
+    }
+}
+
+' Repository Layer
+package repository {
+    interface UserRepository {
+        + findByEmail(String): Optional<User>
+        + findByRole(Role): List<User>
+    }
+
+    interface UserSessionRepository {
+        + findByUserId(Long): Optional<UserSession>
+        + findByToken(String): Optional<UserSession>
+    }
+}
+
+' Entity Layer
+package entity {
+    class User {
+        - id: Long
+        - name: String
+        - email: String
+        - passwordHash: String
+        - role: Role
+        - createdAt: LocalDateTime
+        # User()
+        + User(Long, String, String, String, Role, LocalDateTime)
+        + getId(): Long
+        + getName(): String
+        + getEmail(): String
+        + getPasswordHash(): String
+        + getRole(): Role
+        + getCreatedAt(): LocalDateTime
+        + setName(String): void
+        + setEmail(String): void
+        + setPasswordHash(String): void
+        + setRole(Role): void
+    }
+
+    class UserSession {
+        - id: Long
+        - userId: Long
+        - token: String
+        - lastActivity: LocalDateTime
+        # UserSession()
+        + UserSession(Long, Long, String, LocalDateTime)
+        + getId(): Long
+        + getUserId(): Long
+        + getToken(): String
+        + getLastActivity(): LocalDateTime
+        + setToken(String): void
+        + setLastActivity(LocalDateTime): void
+    }
+
+    enum Role {
+        PATIENT
+        DIETITIAN
+        PHYSICIAN
+        SUPPORT_STAFF
+        SYSTEM_ADMIN
+        SUPER_ADMIN
+    }
+}
+
+' DTO Layer
+package dto {
+    class UserDTO {
+        - id: Long
+        - name: String
+        - email: String
+        - role: String
+        + UserDTO(Long, String, String, String)
+        + getId(): Long
+        + getName(): String
+        + getEmail(): String
+        + getRole(): String
+        + {static} fromEntity(User): UserDTO
+    }
+}
+
+' Config Layer
+package config {
+    class SecurityConfig {
+        - jwtAuthenticationFilter: JwtAuthenticationFilter
+        + SecurityConfig(JwtAuthenticationFilter)
+        + securityFilterChain(HttpSecurity): SecurityFilterChain
+        + authenticationManager(AuthenticationConfiguration): AuthenticationManager
+        + passwordEncoder(): PasswordEncoder
+    }
+}
+
+' Security Layer
+package security {
+    class JwtAuthenticationFilter {
+        - jwtUtil: JwtUtil
+        - securityUtil: SecurityUtil
+        - userDetailsService: UserDetailsService
+        - sessionService: SessionService
+        + JwtAuthenticationFilter(JwtUtil, SecurityUtil, UserDetailsService, SessionService)
+        # doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain): void
+    }
+
+    class JwtUtil {
+        - secret: String
+        - expirationMs: long
+        + JwtUtil(String, long)
+        + generateToken(UserDetails): String
+        + validateToken(String, UserDetails): boolean
+        + extractUsername(String): String
+        + refreshToken(String): String
+        - createToken(Map, String): String
+        - isTokenExpired(String): boolean
+        - extractAllClaims(String): Claims
+        - getSigningKey(): SecretKey
+    }
+
+    class SecurityUtil {
+        + extractToken(HttpServletRequest): String
+    }
+}
+
+' Util Layer
+package util {
+    class HtmlSanitizer {
+        - policy: PolicyFactory
+        + sanitize(String): String
+    }
+
+    class SqlEscapeUtil <<final>> {
+        - SqlEscapeUtil()
+        + {static} escapeSql(String): String
+    }
+}
+
+' Relationships
+UserController --> UserService : uses
+UserService --> UserRepository : uses
+UserService --> HtmlSanitizer : uses
+UserService ..> User : creates/manages
+UserService ..> UserDTO : returns
+UserRepository --|> JpaRepository : extends
+UserRepository ..> User : manages
+UserSessionRepository --|> JpaRepository : extends
+UserSessionRepository ..> UserSession : manages
+User *-- Role : contains
+UserDTO ..> User : converts from
+SecurityConfig --> JwtAuthenticationFilter : configures
+JwtAuthenticationFilter --> JwtUtil : uses
+JwtAuthenticationFilter --> SecurityUtil : uses
+JwtAuthenticationFilter --> SessionService : uses
+SessionService --> UserSessionRepository : uses
+SessionService ..> UserSession : manages
+UserService ..> SqlEscapeUtil : may call
+
+note right of SqlEscapeUtil
+  Static utility class
+  Cannot be mocked
+  Use for pure functions only
+end note
+
+note right of HtmlSanitizer
+  Injectable bean
+  Can be mocked in tests
+  Use for testable logic
+end note
+
+note bottom of UserService
+  Constructor injection pattern:
+  - All dependencies are private final
+  - Single constructor with all params
+  - No field or setter injection
+end note
+
+@enduml

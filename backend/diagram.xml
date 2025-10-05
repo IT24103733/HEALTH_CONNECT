@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMI xmi.version="2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:uml="http://schema.omg.org/spec/UML/2.1">
+  <uml:Model xmi:id="model1" name="HealthConnectBackend">
+    
+    <!-- Controller Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_controller" name="controller">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_UserController" name="UserController">
+        <ownedAttribute xmi:id="attr_UserController_userService" name="userService" type="class_UserService" visibility="private"/>
+        <ownedOperation xmi:id="op_UserController_constructor" name="UserController">
+          <ownedParameter xmi:id="param_UserController_userService" name="userService" type="class_UserService"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserController_getAllUsers" name="getAllUsers" visibility="public">
+          <ownedParameter xmi:id="param_getAllUsers_page" name="page" type="int"/>
+          <ownedParameter xmi:id="param_getAllUsers_size" name="size" type="int"/>
+          <ownedParameter xmi:id="param_getAllUsers_return" name="return" type="ResponseEntity" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserController_getUserById" name="getUserById" visibility="public">
+          <ownedParameter xmi:id="param_getUserById_id" name="id" type="Long"/>
+          <ownedParameter xmi:id="param_getUserById_return" name="return" type="ResponseEntity" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserController_updateUser" name="updateUser" visibility="public"/>
+        <ownedOperation xmi:id="op_UserController_deleteUser" name="deleteUser" visibility="public"/>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Service Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_service" name="service">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_UserService" name="UserService">
+        <ownedAttribute xmi:id="attr_UserService_userRepository" name="userRepository" type="class_UserRepository" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserService_htmlSanitizer" name="htmlSanitizer" type="class_HtmlSanitizer" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserService_passwordEncoder" name="passwordEncoder" type="PasswordEncoder" visibility="private"/>
+        <ownedOperation xmi:id="op_UserService_constructor" name="UserService">
+          <ownedParameter xmi:id="param_UserService_userRepository" name="userRepository" type="class_UserRepository"/>
+          <ownedParameter xmi:id="param_UserService_htmlSanitizer" name="htmlSanitizer" type="class_HtmlSanitizer"/>
+          <ownedParameter xmi:id="param_UserService_passwordEncoder" name="passwordEncoder" type="PasswordEncoder"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserService_findByEmail" name="findByEmail" visibility="public">
+          <ownedParameter xmi:id="param_findByEmail_email" name="email" type="String"/>
+          <ownedParameter xmi:id="param_findByEmail_return" name="return" type="Optional" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserService_createUser" name="createUser" visibility="public">
+          <ownedParameter xmi:id="param_createUser_return" name="return" type="class_User" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserService_updateUser" name="updateUser" visibility="public"/>
+        <ownedOperation xmi:id="op_UserService_getAllUsers" name="getAllUsers" visibility="public"/>
+        <ownedOperation xmi:id="op_UserService_deleteUser" name="deleteUser" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="class_SessionService" name="SessionService">
+        <ownedAttribute xmi:id="attr_SessionService_sessionRepository" name="sessionRepository" type="class_UserSessionRepository" visibility="private"/>
+        <ownedOperation xmi:id="op_SessionService_constructor" name="SessionService">
+          <ownedParameter xmi:id="param_SessionService_sessionRepository" name="sessionRepository" type="class_UserSessionRepository"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_SessionService_createOrUpdateSession" name="createOrUpdateSession" visibility="public"/>
+        <ownedOperation xmi:id="op_SessionService_updateActivity" name="updateActivity" visibility="public"/>
+        <ownedOperation xmi:id="op_SessionService_isSessionValid" name="isSessionValid" visibility="public">
+          <ownedParameter xmi:id="param_isSessionValid_return" name="return" type="boolean" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Repository Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_repository" name="repository">
+      <packagedElement xmi:type="uml:Interface" xmi:id="class_UserRepository" name="UserRepository">
+        <ownedOperation xmi:id="op_UserRepository_findByEmail" name="findByEmail" visibility="public">
+          <ownedParameter xmi:id="param_UserRepository_findByEmail_email" name="email" type="String"/>
+          <ownedParameter xmi:id="param_UserRepository_findByEmail_return" name="return" type="Optional" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserRepository_findByRole" name="findByRole" visibility="public">
+          <ownedParameter xmi:id="param_UserRepository_findByRole_return" name="return" type="List" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Interface" xmi:id="class_UserSessionRepository" name="UserSessionRepository">
+        <ownedOperation xmi:id="op_UserSessionRepository_findByUserId" name="findByUserId" visibility="public"/>
+        <ownedOperation xmi:id="op_UserSessionRepository_findByToken" name="findByToken" visibility="public"/>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Entity Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_entity" name="entity">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_User" name="User">
+        <ownedAttribute xmi:id="attr_User_id" name="id" type="Long" visibility="private"/>
+        <ownedAttribute xmi:id="attr_User_name" name="name" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_User_email" name="email" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_User_passwordHash" name="passwordHash" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_User_role" name="role" type="enum_Role" visibility="private"/>
+        <ownedAttribute xmi:id="attr_User_createdAt" name="createdAt" type="LocalDateTime" visibility="private"/>
+        <ownedOperation xmi:id="op_User_constructor_protected" name="User" visibility="protected"/>
+        <ownedOperation xmi:id="op_User_constructor_public" name="User" visibility="public">
+          <ownedParameter xmi:id="param_User_id" name="id" type="Long"/>
+          <ownedParameter xmi:id="param_User_name" name="name" type="String"/>
+          <ownedParameter xmi:id="param_User_email" name="email" type="String"/>
+          <ownedParameter xmi:id="param_User_passwordHash" name="passwordHash" type="String"/>
+          <ownedParameter xmi:id="param_User_role" name="role" type="enum_Role"/>
+          <ownedParameter xmi:id="param_User_createdAt" name="createdAt" type="LocalDateTime"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_User_getId" name="getId" visibility="public">
+          <ownedParameter xmi:id="param_User_getId_return" name="return" type="Long" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_User_getName" name="getName" visibility="public"/>
+        <ownedOperation xmi:id="op_User_getEmail" name="getEmail" visibility="public"/>
+        <ownedOperation xmi:id="op_User_setName" name="setName" visibility="public"/>
+        <ownedOperation xmi:id="op_User_setEmail" name="setEmail" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="class_UserSession" name="UserSession">
+        <ownedAttribute xmi:id="attr_UserSession_id" name="id" type="Long" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserSession_userId" name="userId" type="Long" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserSession_token" name="token" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserSession_lastActivity" name="lastActivity" type="LocalDateTime" visibility="private"/>
+        <ownedOperation xmi:id="op_UserSession_constructor_protected" name="UserSession" visibility="protected"/>
+        <ownedOperation xmi:id="op_UserSession_constructor_public" name="UserSession" visibility="public"/>
+        <ownedOperation xmi:id="op_UserSession_getId" name="getId" visibility="public"/>
+        <ownedOperation xmi:id="op_UserSession_setToken" name="setToken" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="enum_Role" name="Role">
+        <ownedLiteral xmi:id="literal_PATIENT" name="PATIENT"/>
+        <ownedLiteral xmi:id="literal_DIETITIAN" name="DIETITIAN"/>
+        <ownedLiteral xmi:id="literal_PHYSICIAN" name="PHYSICIAN"/>
+        <ownedLiteral xmi:id="literal_SUPPORT_STAFF" name="SUPPORT_STAFF"/>
+        <ownedLiteral xmi:id="literal_SYSTEM_ADMIN" name="SYSTEM_ADMIN"/>
+        <ownedLiteral xmi:id="literal_SUPER_ADMIN" name="SUPER_ADMIN"/>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- DTO Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_dto" name="dto">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_UserDTO" name="UserDTO">
+        <ownedAttribute xmi:id="attr_UserDTO_id" name="id" type="Long" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserDTO_name" name="name" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserDTO_email" name="email" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_UserDTO_role" name="role" type="String" visibility="private"/>
+        <ownedOperation xmi:id="op_UserDTO_constructor" name="UserDTO" visibility="public">
+          <ownedParameter xmi:id="param_UserDTO_id" name="id" type="Long"/>
+          <ownedParameter xmi:id="param_UserDTO_name" name="name" type="String"/>
+          <ownedParameter xmi:id="param_UserDTO_email" name="email" type="String"/>
+          <ownedParameter xmi:id="param_UserDTO_role" name="role" type="String"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserDTO_fromEntity" name="fromEntity" visibility="public" isStatic="true">
+          <ownedParameter xmi:id="param_UserDTO_fromEntity_user" name="user" type="class_User"/>
+          <ownedParameter xmi:id="param_UserDTO_fromEntity_return" name="return" type="class_UserDTO" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_UserDTO_getId" name="getId" visibility="public"/>
+        <ownedOperation xmi:id="op_UserDTO_getName" name="getName" visibility="public"/>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Config Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_config" name="config">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_SecurityConfig" name="SecurityConfig">
+        <ownedAttribute xmi:id="attr_SecurityConfig_jwtAuthenticationFilter" name="jwtAuthenticationFilter" type="class_JwtAuthenticationFilter" visibility="private"/>
+        <ownedOperation xmi:id="op_SecurityConfig_constructor" name="SecurityConfig">
+          <ownedParameter xmi:id="param_SecurityConfig_jwtAuthenticationFilter" name="jwtAuthenticationFilter" type="class_JwtAuthenticationFilter"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_SecurityConfig_securityFilterChain" name="securityFilterChain" visibility="public"/>
+        <ownedOperation xmi:id="op_SecurityConfig_authenticationManager" name="authenticationManager" visibility="public"/>
+        <ownedOperation xmi:id="op_SecurityConfig_passwordEncoder" name="passwordEncoder" visibility="public"/>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Security Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_security" name="security">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_JwtAuthenticationFilter" name="JwtAuthenticationFilter">
+        <ownedAttribute xmi:id="attr_JwtAuthenticationFilter_jwtUtil" name="jwtUtil" type="class_JwtUtil" visibility="private"/>
+        <ownedAttribute xmi:id="attr_JwtAuthenticationFilter_securityUtil" name="securityUtil" type="class_SecurityUtil" visibility="private"/>
+        <ownedAttribute xmi:id="attr_JwtAuthenticationFilter_userDetailsService" name="userDetailsService" type="UserDetailsService" visibility="private"/>
+        <ownedAttribute xmi:id="attr_JwtAuthenticationFilter_sessionService" name="sessionService" type="class_SessionService" visibility="private"/>
+        <ownedOperation xmi:id="op_JwtAuthenticationFilter_constructor" name="JwtAuthenticationFilter">
+          <ownedParameter xmi:id="param_JwtAuthenticationFilter_jwtUtil" name="jwtUtil" type="class_JwtUtil"/>
+          <ownedParameter xmi:id="param_JwtAuthenticationFilter_securityUtil" name="securityUtil" type="class_SecurityUtil"/>
+          <ownedParameter xmi:id="param_JwtAuthenticationFilter_userDetailsService" name="userDetailsService" type="UserDetailsService"/>
+          <ownedParameter xmi:id="param_JwtAuthenticationFilter_sessionService" name="sessionService" type="class_SessionService"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_JwtAuthenticationFilter_doFilterInternal" name="doFilterInternal" visibility="protected"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="class_JwtUtil" name="JwtUtil">
+        <ownedAttribute xmi:id="attr_JwtUtil_secret" name="secret" type="String" visibility="private"/>
+        <ownedAttribute xmi:id="attr_JwtUtil_expirationMs" name="expirationMs" type="long" visibility="private"/>
+        <ownedOperation xmi:id="op_JwtUtil_constructor" name="JwtUtil">
+          <ownedParameter xmi:id="param_JwtUtil_secret" name="secret" type="String"/>
+          <ownedParameter xmi:id="param_JwtUtil_expirationMs" name="expirationMs" type="long"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_JwtUtil_generateToken" name="generateToken" visibility="public">
+          <ownedParameter xmi:id="param_JwtUtil_generateToken_return" name="return" type="String" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_JwtUtil_validateToken" name="validateToken" visibility="public">
+          <ownedParameter xmi:id="param_JwtUtil_validateToken_return" name="return" type="boolean" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="op_JwtUtil_extractUsername" name="extractUsername" visibility="public"/>
+        <ownedOperation xmi:id="op_JwtUtil_refreshToken" name="refreshToken" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="class_SecurityUtil" name="SecurityUtil">
+        <ownedOperation xmi:id="op_SecurityUtil_extractToken" name="extractToken" visibility="public">
+          <ownedParameter xmi:id="param_SecurityUtil_extractToken_return" name="return" type="String" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Util Package -->
+    <packagedElement xmi:type="uml:Package" xmi:id="pkg_util" name="util">
+      <packagedElement xmi:type="uml:Class" xmi:id="class_HtmlSanitizer" name="HtmlSanitizer">
+        <ownedAttribute xmi:id="attr_HtmlSanitizer_policy" name="policy" type="PolicyFactory" visibility="private"/>
+        <ownedOperation xmi:id="op_HtmlSanitizer_sanitize" name="sanitize" visibility="public">
+          <ownedParameter xmi:id="param_HtmlSanitizer_sanitize_input" name="input" type="String"/>
+          <ownedParameter xmi:id="param_HtmlSanitizer_sanitize_return" name="return" type="String" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="class_SqlEscapeUtil" name="SqlEscapeUtil" isFinalSpecialization="true">
+        <ownedOperation xmi:id="op_SqlEscapeUtil_constructor" name="SqlEscapeUtil" visibility="private"/>
+        <ownedOperation xmi:id="op_SqlEscapeUtil_escapeSql" name="escapeSql" visibility="public" isStatic="true">
+          <ownedParameter xmi:id="param_SqlEscapeUtil_escapeSql_s" name="s" type="String"/>
+          <ownedParameter xmi:id="param_SqlEscapeUtil_escapeSql_return" name="return" type="String" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+    </packagedElement>
+
+    <!-- Relationships -->
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_UserController_UserService">
+      <memberEnd xmi:idref="attr_UserController_userService"/>
+      <ownedEnd xmi:id="end_UserService_UserController" type="class_UserService"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_UserService_UserRepository">
+      <memberEnd xmi:idref="attr_UserService_userRepository"/>
+      <ownedEnd xmi:id="end_UserRepository_UserService" type="class_UserRepository"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_UserService_HtmlSanitizer">
+      <memberEnd xmi:idref="attr_UserService_htmlSanitizer"/>
+      <ownedEnd xmi:id="end_HtmlSanitizer_UserService" type="class_HtmlSanitizer"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Dependency" xmi:id="dep_UserService_User" client="class_UserService" supplier="class_User"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="dep_UserService_UserDTO" client="class_UserService" supplier="class_UserDTO"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="dep_UserDTO_User" client="class_UserDTO" supplier="class_User"/>
+
+    <packagedElement xmi:type="uml:Realization" xmi:id="real_UserRepository_JpaRepository" client="class_UserRepository" supplier="JpaRepository"/>
+    <packagedElement xmi:type="uml:Realization" xmi:id="real_UserSessionRepository_JpaRepository" client="class_UserSessionRepository" supplier="JpaRepository"/>
+
+    <packagedElement xmi:type="uml:Composition" xmi:id="comp_User_Role">
+      <memberEnd xmi:idref="attr_User_role"/>
+      <ownedEnd xmi:id="end_Role_User" type="enum_Role"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_SecurityConfig_JwtAuthenticationFilter">
+      <memberEnd xmi:idref="attr_SecurityConfig_jwtAuthenticationFilter"/>
+      <ownedEnd xmi:id="end_JwtAuthenticationFilter_SecurityConfig" type="class_JwtAuthenticationFilter"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_JwtAuthenticationFilter_JwtUtil">
+      <memberEnd xmi:idref="attr_JwtAuthenticationFilter_jwtUtil"/>
+      <ownedEnd xmi:id="end_JwtUtil_JwtAuthenticationFilter" type="class_JwtUtil"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_JwtAuthenticationFilter_SecurityUtil">
+      <memberEnd xmi:idref="attr_JwtAuthenticationFilter_securityUtil"/>
+      <ownedEnd xmi:id="end_SecurityUtil_JwtAuthenticationFilter" type="class_SecurityUtil"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_JwtAuthenticationFilter_SessionService">
+      <memberEnd xmi:idref="attr_JwtAuthenticationFilter_sessionService"/>
+      <ownedEnd xmi:id="end_SessionService_JwtAuthenticationFilter" type="class_SessionService"/>
+    </packagedElement>
+
+    <packagedElement xmi:type="uml:Association" xmi:id="assoc_SessionService_UserSessionRepository">
+      <memberEnd xmi:idref="attr_SessionService_sessionRepository"/>
+      <ownedEnd xmi:id="end_UserSessionRepository_SessionService" type="class_UserSessionRepository"/>
+    </packagedElement>
+
+  </uml:Model>
+</XMI>
