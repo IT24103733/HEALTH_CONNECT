@@ -55,13 +55,7 @@ public class HealthMetricController {
         return ResponseEntity.ok(healthMetricService.getUserMetricsInRange(userId, startDate, endDate));
     }
 
-    @GetMapping("/user/{userId}/trends/daily")
-    public ResponseEntity<List<HealthTrendDTO>> getDailyTrends(
-            @PathVariable Long userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(healthMetricService.getDailyTrends(userId, startDate, endDate));
-    }
+
 
     @GetMapping("/user/{userId}/trends/weekly")
     public ResponseEntity<List<HealthTrendDTO>> getWeeklyTrends(
