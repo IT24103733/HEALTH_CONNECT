@@ -64,18 +64,35 @@ public class MessageController {
     }
 
     @GetMapping("/inbox/{userId}")
-    public ResponseEntity<List<MessageDTO>> getInbox(@PathVariable Long userId) {
+    public ResponseEntity<List<MessageDTO>> getInbox(@PathVariable Long userId, Authentication auth) {
+        User currentUser = userService.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (!currentUser.getId().equals(userId)) {
+            throw new RuntimeException("Cannot access other users' inbox");
+        }
+        
         return ResponseEntity.ok(messageService.getInbox(userId));
     }
 
     @GetMapping("/sent/{userId}")
-    public ResponseEntity<List<MessageDTO>> getSentMessages(@PathVariable Long userId) {
+    public ResponseEntity<List<MessageDTO>> getSentMessages(@PathVariable Long userId, Authentication auth) {
+        User currentUser = userService.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (!currentUser.getId().equals(userId)) {
+            throw new RuntimeException("Cannot access other users' sent messages");
+        }
+        
         return ResponseEntity.ok(messageService.getSentMessages(userId));
     }
 
     @PutMapping("/{messageId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long messageId) {
-        messageService.markAsRead(messageId);
+    public ResponseEntity<Void> markAsRead(@PathVariable Long messageId, Authentication auth) {
+        User currentUser = userService.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        messageService.markAsRead(messageId, currentUser.getId());
         return ResponseEntity.ok().build();
     }
 }

@@ -47,9 +47,14 @@ public class MessageService {
     }
 
     @Transactional
-    public void markAsRead(Long messageId) {
+    public void markAsRead(Long messageId, Long userId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new RuntimeException("Message not found"));
+        
+        if (!message.getRecipientId().equals(userId)) {
+            throw new RuntimeException("Cannot mark other users' messages as read");
+        }
+        
         message.setRead(true);
         messageRepository.save(message);
     }

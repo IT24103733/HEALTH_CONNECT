@@ -29,9 +29,14 @@ public class CarePlanService {
     }
 
     @Transactional
-    public CarePlan updateCarePlan(Long id, String content) {
+    public CarePlan updateCarePlan(Long id, String content, Long userId) {
         CarePlan plan = carePlanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Care plan not found"));
+        
+        if (!plan.getCreatorId().equals(userId)) {
+            throw new RuntimeException("Cannot update care plans created by other users");
+        }
+        
         String sanitizedContent = htmlSanitizer.sanitize(content);
         plan.setContent(sanitizedContent);
         return carePlanRepository.save(plan);
