@@ -10,4 +10,5 @@ import java.util.List;
 public interface AccessLogRepository extends JpaRepository<AccessLog, Long> {
     List<AccessLog> findByUserIdOrderByTimestampDesc(Long userId);
     List<AccessLog> findByTimestampBetweenOrderByTimestampDesc(LocalDateTime start, LocalDateTime end);
+    List<AccessLog> findByUserIdAndTimestampBetweenOrderByTimestampDesc(Long userId, LocalDateTime start, LocalDateTime end);
 }

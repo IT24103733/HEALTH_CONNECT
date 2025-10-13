@@ -29,6 +29,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     @Transactional
     public User createUser(String name, String email, String password, User.Role role) {
         String sanitizedName = htmlSanitizer.sanitize(name);

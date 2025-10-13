@@ -45,12 +45,20 @@ public class ComplianceController {
     }
 
     @GetMapping("/logs/user/{userId}")
-    public ResponseEntity<List<AccessLog>> getUserLogs(@PathVariable Long userId, Authentication auth) {
+    public ResponseEntity<List<AccessLog>> getUserLogs(
+            @PathVariable Long userId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            Authentication auth) {
         User user = userService.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         if (user.getRole() != User.Role.SYSTEM_ADMIN && user.getRole() != User.Role.SUPER_ADMIN) {
             throw new RuntimeException("Unauthorized access");
+        }
+
+        if (startDate != null && endDate != null) {
+            return ResponseEntity.ok(accessLogService.getUserLogsInRange(userId, startDate, endDate));
         }
 
         return ResponseEntity.ok(accessLogService.getUserLogs(userId));

@@ -34,10 +34,13 @@ public class AppointmentController {
             throw new RuntimeException("Only patients can view doctors");
         }
 
-        List<UserDTO> doctors = userService.findByRole(User.Role.PHYSICIAN).stream()
+        List<UserDTO> clinicians = userService.findByRole(User.Role.DOCTOR).stream()
                 .map(UserDTO::fromEntity)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(doctors);
+        clinicians.addAll(userService.findByRole(User.Role.DIETITIAN).stream()
+                .map(UserDTO::fromEntity)
+                .collect(Collectors.toList()));
+        return ResponseEntity.ok(clinicians);
     }
 
     @PostMapping
@@ -54,13 +57,15 @@ public class AppointmentController {
         LocalDateTime scheduledTime = LocalDateTime.parse(request.get("scheduledTime").toString());
         String notes = request.get("notes") != null ? request.get("notes").toString() : null;
         
-        User doctor = userService.findByRole(User.Role.PHYSICIAN).stream()
-                .filter(d -> d.getId().equals(clinicianId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+        User clinician = userService.findById(clinicianId)
+                .orElseThrow(() -> new RuntimeException("Clinician not found"));
         
-        appointmentService.scheduleAppointment(patient.getId(), clinicianId, scheduledTime, notes, doctor.getName());
-        return ResponseEntity.ok(Map.of("message", "Doctor " + doctor.getName() + " successfully booked!"));
+        if (clinician.getRole() != User.Role.DOCTOR && clinician.getRole() != User.Role.DIETITIAN) {
+            throw new RuntimeException("Can only book appointments with doctors or dietitians");
+        }
+        
+        appointmentService.scheduleAppointment(patient.getId(), clinicianId, scheduledTime, notes, clinician.getName());
+        return ResponseEntity.ok(Map.of("message", "Appointment with " + clinician.getName() + " successfully booked!"));
     }
 
     @DeleteMapping("/{id}")
@@ -76,15 +81,15 @@ public class AppointmentController {
     public ResponseEntity<Map<String, String>> updateStatus(@PathVariable Long id, 
                                             @RequestBody Map<String, String> request,
                                             Authentication auth) {
-        User doctor = userService.findByEmail(auth.getName())
+        User clinician = userService.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if (doctor.getRole() != User.Role.PHYSICIAN) {
-            throw new RuntimeException("Only doctors can update appointment status");
+        if (clinician.getRole() != User.Role.DOCTOR && clinician.getRole() != User.Role.DIETITIAN) {
+            throw new RuntimeException("Only doctors or dietitians can update appointment status");
         }
 
         Appointment.AppointmentStatus status = Appointment.AppointmentStatus.valueOf(request.get("status"));
-        appointmentService.updateAppointmentStatus(id, doctor.getId(), status);
+        appointmentService.updateAppointmentStatus(id, clinician.getId(), status);
         return ResponseEntity.ok(Map.of("message", "Appointment status updated"));
     }
 
@@ -95,7 +100,7 @@ public class AppointmentController {
         
         if (user.getRole() == User.Role.PATIENT) {
             return ResponseEntity.ok(appointmentService.getPatientAppointments(user.getId()));
-        } else if (user.getRole() == User.Role.PHYSICIAN) {
+        } else if (user.getRole() == User.Role.DOCTOR || user.getRole() == User.Role.DIETITIAN) {
             return ResponseEntity.ok(appointmentService.getClinicianAppointments(user.getId()));
         }
         

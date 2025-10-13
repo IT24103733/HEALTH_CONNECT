@@ -18,14 +18,18 @@ public class Application {
     @Bean
     public CommandLineRunner dataSeeder(UserService userService, MessageService messageService) {
         return args -> {
-            User patient = userService.createUser("John Doe", "patient@example.com", 
-                    "password123", User.Role.PATIENT);
-            User physician = userService.createUser("Dr. Smith", "physician@example.com", 
-                    "password123", User.Role.PHYSICIAN);
-            User dietitian = userService.createUser("Jane Nutritionist", "dietitian@example.com", 
-                    "password123", User.Role.DIETITIAN);
-            User admin = userService.createUser("Admin User", "admin@example.com", 
-                    "password123", User.Role.SYSTEM_ADMIN);
+            User patient = userService.findByEmail("patient@example.com")
+                    .orElseGet(() -> userService.createUser("John Doe", "patient@example.com", 
+                            "password123", User.Role.PATIENT));
+            User physician = userService.findByEmail("physician@example.com")
+                    .orElseGet(() -> userService.createUser("Dr. Smith", "physician@example.com", 
+                            "password123", User.Role.DOCTOR));
+            User dietitian = userService.findByEmail("dietitian@example.com")
+                    .orElseGet(() -> userService.createUser("Jane Nutritionist", "dietitian@example.com", 
+                            "password123", User.Role.DIETITIAN));
+            User admin = userService.findByEmail("admin@example.com")
+                    .orElseGet(() -> userService.createUser("Admin User", "admin@example.com", 
+                            "password123", User.Role.SYSTEM_ADMIN));
 
             messageService.sendMessage(physician.getId(), patient.getId(), 
                     "Welcome to Health Connect! Please log your daily health metrics.");

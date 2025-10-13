@@ -32,4 +32,8 @@ public class AccessLogService {
     public List<AccessLog> getAllLogs() {
         return accessLogRepository.findAll();
     }
+
+    public List<AccessLog> getUserLogsInRange(Long userId, LocalDateTime start, LocalDateTime end) {
+        return accessLogRepository.findByUserIdAndTimestampBetweenOrderByTimestampDesc(userId, start, end);
+    }
 }
