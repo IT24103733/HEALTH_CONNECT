@@ -38,7 +38,7 @@ public class UserService {
         String sanitizedName = htmlSanitizer.sanitize(name);
         String hashedPassword = passwordEncoder.encode(password);
         
-        User user = new User(null, sanitizedName, email, hashedPassword, role, LocalDateTime.now());
+        User user = new User(null, sanitizedName, email, hashedPassword, role, null, LocalDateTime.now());
         return userRepository.save(user);
     }
 

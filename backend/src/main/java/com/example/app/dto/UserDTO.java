@@ -7,12 +7,14 @@ public class UserDTO {
     private final String name;
     private final String email;
     private final String role;
+    private final String specialty;
 
-    public UserDTO(Long id, String name, String email, String role) {
+    public UserDTO(Long id, String name, String email, String role, String specialty) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.role = role;
+        this.specialty = specialty;
     }
 
     public Long getId() {
@@ -31,7 +33,11 @@ public class UserDTO {
         return role;
     }
 
+    public String getSpecialty() {
+        return specialty;
+    }
+
     public static UserDTO fromEntity(User user) {
-        return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole().name());
+        return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), user.getSpecialty());
     }
 }
