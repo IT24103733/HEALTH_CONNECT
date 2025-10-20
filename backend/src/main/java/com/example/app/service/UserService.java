@@ -35,10 +35,16 @@ public class UserService {
 
     @Transactional
     public User createUser(String name, String email, String password, User.Role role) {
+        return createUser(name, email, password, role, null);
+    }
+
+    @Transactional
+    public User createUser(String name, String email, String password, User.Role role, String specialization) {
         String sanitizedName = htmlSanitizer.sanitize(name);
+        String sanitizedSpecialization = specialization != null ? htmlSanitizer.sanitize(specialization) : null;
         String hashedPassword = passwordEncoder.encode(password);
         
-        User user = new User(null, sanitizedName, email, hashedPassword, role, null, LocalDateTime.now());
+        User user = new User(null, sanitizedName, email, hashedPassword, role, sanitizedSpecialization, LocalDateTime.now());
         return userRepository.save(user);
     }
 

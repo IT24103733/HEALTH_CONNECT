@@ -65,7 +65,8 @@ public class AppointmentService {
         LocalDateTime end = scheduledTime.plusMinutes(30);
         List<Appointment> conflicts = appointmentRepository
                 .findByClinicianIdAndScheduledTimeBetween(clinicianId, start, end);
-        return !conflicts.isEmpty();
+        return conflicts.stream()
+                .anyMatch(apt -> apt.getStatus() == Appointment.AppointmentStatus.SCHEDULED);
     }
 
     @Transactional

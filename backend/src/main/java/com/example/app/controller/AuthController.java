@@ -35,7 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> credentials) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
         String password = credentials.get("password");
         
@@ -49,7 +49,12 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         sessionService.createOrUpdateSession(user.getId(), token);
         
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(Map.of(
+            "token", token,
+            "userId", user.getId(),
+            "email", user.getEmail(),
+            "role", user.getRole().name()
+        ));
     }
 
     @PostMapping("/register")
@@ -58,9 +63,10 @@ public class AuthController {
         String email = request.get("email");
         String password = request.get("password");
         String roleStr = request.getOrDefault("role", "PATIENT");
+        String specialization = request.get("specialization");
         
         User.Role role = User.Role.valueOf(roleStr);
-        userService.createUser(name, email, password, role);
+        userService.createUser(name, email, password, role, specialization);
         
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }

@@ -23,7 +23,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    private String specialty;
+    private String specialization;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -32,13 +32,13 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    public User(Long id, String name, String email, String passwordHash, Role role, String specialty, LocalDateTime createdAt) {
+    public User(Long id, String name, String email, String passwordHash, Role role, String specialization, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
-        this.specialty = specialty;
+        this.specialization = specialization;
         this.createdAt = createdAt;
     }
 
@@ -82,12 +82,12 @@ public class User {
         this.role = role;
     }
 
-    public String getSpecialty() {
-        return specialty;
+    public String getSpecialization() {
+        return specialization;
     }
 
-    public void setSpecialty(String specialty) {
-        this.specialty = specialty;
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
     }
 
     public enum Role {

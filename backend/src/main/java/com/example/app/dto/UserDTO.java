@@ -38,6 +38,6 @@ public class UserDTO {
     }
 
     public static UserDTO fromEntity(User user) {
-        return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), user.getSpecialty());
+        return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), user.getSpecialization());
     }
 }
