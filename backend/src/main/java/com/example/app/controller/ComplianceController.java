@@ -1,13 +1,12 @@
 package com.example.app.controller;
 
 import com.example.app.entity.AccessLog;
-import com.example.app.entity.User;
 import com.example.app.service.AccessLogService;
-import com.example.app.service.UserService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
@@ -17,26 +16,16 @@ import java.util.List;
 @RequestMapping("/api/compliance")
 public class ComplianceController {
     private final AccessLogService accessLogService;
-    private final UserService userService;
 
-    public ComplianceController(AccessLogService accessLogService, UserService userService) {
+    public ComplianceController(AccessLogService accessLogService) {
         this.accessLogService = accessLogService;
-        this.userService = userService;
     }
 
     @GetMapping("/logs")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<AccessLog>> getAccessLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            Authentication auth) {
-        
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() != User.Role.SYSTEM_ADMIN && user.getRole() != User.Role.SUPER_ADMIN) {
-            throw new RuntimeException("Unauthorized access");
-        }
-
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         if (startDate != null && endDate != null) {
             return ResponseEntity.ok(accessLogService.getLogsInRange(startDate, endDate));
         }
@@ -45,18 +34,11 @@ public class ComplianceController {
     }
 
     @GetMapping("/logs/user/{userId}")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<AccessLog>> getUserLogs(
             @PathVariable Long userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() != User.Role.SYSTEM_ADMIN && user.getRole() != User.Role.SUPER_ADMIN) {
-            throw new RuntimeException("Unauthorized access");
-        }
-
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         if (startDate != null && endDate != null) {
             return ResponseEntity.ok(accessLogService.getUserLogsInRange(userId, startDate, endDate));
         }
@@ -65,18 +47,10 @@ public class ComplianceController {
     }
 
     @GetMapping("/export/csv")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<String> exportLogsToCSV(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            Authentication auth) {
-        
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() != User.Role.SYSTEM_ADMIN && user.getRole() != User.Role.SUPER_ADMIN) {
-            throw new RuntimeException("Unauthorized access");
-        }
-
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         List<AccessLog> logs;
         if (startDate != null && endDate != null) {
             logs = accessLogService.getLogsInRange(startDate, endDate);

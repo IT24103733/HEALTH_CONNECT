@@ -1,9 +1,15 @@
 package com.example.app.controller;
 
+import com.example.app.dto.LoginRequest;
+import com.example.app.dto.RegisterRequest;
 import com.example.app.entity.User;
+import com.example.app.exception.NotFoundException;
+import com.example.app.exception.ValidationException;
 import com.example.app.security.JwtUtil;
 import com.example.app.service.SessionService;
 import com.example.app.service.UserService;
+import com.example.app.util.AuthUtil;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,32 +27,32 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final SessionService sessionService;
+    private final AuthUtil authUtil;
 
     public AuthController(AuthenticationManager authenticationManager,
                          UserDetailsService userDetailsService,
                          JwtUtil jwtUtil,
                          UserService userService,
-                         SessionService sessionService) {
+                         SessionService sessionService,
+                         AuthUtil authUtil) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.sessionService = sessionService;
+        this.authUtil = authUtil;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
-        String password = credentials.get("password");
-        
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password));
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtUtil.generateToken(userDetails);
         
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userService.findByEmail(request.getEmail())
+                .orElseThrow(() -> new NotFoundException("User not found"));
         sessionService.createOrUpdateSession(user.getId(), token);
         
         return ResponseEntity.ok(Map.of(
@@ -58,27 +64,23 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> request) {
-        String name = request.get("name");
-        String email = request.get("email");
-        String password = request.get("password");
-        String roleStr = request.getOrDefault("role", "PATIENT");
-        String specialization = request.get("specialization");
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
+        User.Role role;
+        try {
+            role = User.Role.valueOf(request.getRole());
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Invalid role value");
+        }
         
-        User.Role role = User.Role.valueOf(roleStr);
-        userService.createUser(name, email, password, role, specialization);
+        userService.createUser(request.getName(), request.getEmail(), request.getPassword(), 
+                role, request.getSpecialization());
         
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refresh(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
-        }
-        
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authUtil.getAuthenticatedUser(auth);
         
         UserDetails userDetails = userDetailsService.loadUserByUsername(auth.getName());
         String newToken = jwtUtil.generateToken(userDetails);

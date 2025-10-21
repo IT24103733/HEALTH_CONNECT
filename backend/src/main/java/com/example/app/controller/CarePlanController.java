@@ -1,11 +1,17 @@
 package com.example.app.controller;
 
 import com.example.app.dto.CarePlanDTO;
+import com.example.app.dto.CarePlanRequest;
 import com.example.app.entity.CarePlan;
 import com.example.app.entity.User;
+import com.example.app.exception.UnauthorizedException;
+import com.example.app.exception.ValidationException;
 import com.example.app.service.CarePlanService;
 import com.example.app.service.UserService;
+import com.example.app.util.AuthUtil;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -16,45 +22,50 @@ import java.util.Map;
 public class CarePlanController {
     private final CarePlanService carePlanService;
     private final UserService userService;
+    private final AuthUtil authUtil;
 
-    public CarePlanController(CarePlanService carePlanService, UserService userService) {
+    public CarePlanController(CarePlanService carePlanService, UserService userService, AuthUtil authUtil) {
         this.carePlanService = carePlanService;
         this.userService = userService;
+        this.authUtil = authUtil;
     }
 
     @PostMapping
-    public ResponseEntity<CarePlanDTO> createCarePlan(@RequestBody Map<String, Object> request, Authentication auth) {
-        User currentUser = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    @PreAuthorize("hasAnyRole('DIETITIAN', 'DOCTOR')")
+    public ResponseEntity<CarePlanDTO> createCarePlan(@Valid @RequestBody CarePlanRequest request, Authentication auth) {
+        User currentUser = authUtil.getAuthenticatedUser(auth);
         
-        Long patientId = Long.valueOf(request.get("patientId").toString());
-        Long creatorId = Long.valueOf(request.get("creatorId").toString());
-        CarePlan.PlanType planType = CarePlan.PlanType.valueOf(request.get("planType").toString());
-        String content = request.get("content").toString();
+        if (!currentUser.getId().equals(request.getCreatorId())) {
+            throw new ValidationException("Cannot create care plans for other users");
+        }
         
-        if (!currentUser.getId().equals(creatorId)) {
-            throw new RuntimeException("Cannot create care plans for other users");
+        CarePlan.PlanType planType;
+        try {
+            planType = CarePlan.PlanType.valueOf(request.getPlanType());
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Invalid plan type");
         }
         
         if (planType == CarePlan.PlanType.MEAL_PLAN && currentUser.getRole() != User.Role.DIETITIAN) {
-            throw new RuntimeException("Only dietitians can create meal plans");
+            throw new UnauthorizedException("Only dietitians can create meal plans");
         }
         
         if (planType == CarePlan.PlanType.TREATMENT_PLAN && currentUser.getRole() != User.Role.DOCTOR) {
-            throw new RuntimeException("Only doctors can create treatment plans");
+            throw new UnauthorizedException("Only doctors can create treatment plans");
         }
         
         CarePlanDTO plan = CarePlanDTO.fromEntity(
-                carePlanService.createCarePlan(patientId, creatorId, planType, content));
+                carePlanService.createCarePlan(request.getPatientId(), request.getCreatorId(), 
+                        planType, request.getContent()));
         return ResponseEntity.ok(plan);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('DIETITIAN', 'DOCTOR')")
     public ResponseEntity<CarePlanDTO> updateCarePlan(@PathVariable Long id, 
                                                       @RequestBody Map<String, String> request,
                                                       Authentication auth) {
-        User currentUser = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = authUtil.getAuthenticatedUser(auth);
         
         String content = request.get("content");
         CarePlanDTO plan = CarePlanDTO.fromEntity(carePlanService.updateCarePlan(id, content, currentUser.getId()));
@@ -62,6 +73,7 @@ public class CarePlanController {
     }
 
     @PutMapping("/{id}/adherence")
+    @PreAuthorize("hasAnyRole('DIETITIAN', 'DOCTOR', 'PATIENT')")
     public ResponseEntity<Void> updateAdherence(@PathVariable Long id, 
                                                @RequestBody Map<String, Double> request) {
         Double adherence = request.get("adherencePercentage");
@@ -70,26 +82,26 @@ public class CarePlanController {
     }
 
     @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'DIETITIAN')")
     public ResponseEntity<List<CarePlanDTO>> getPatientCarePlans(@PathVariable Long patientId, Authentication auth) {
-        User currentUser = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = authUtil.getAuthenticatedUser(auth);
         
         if (!currentUser.getId().equals(patientId) && 
             currentUser.getRole() != User.Role.DOCTOR && 
             currentUser.getRole() != User.Role.DIETITIAN) {
-            throw new RuntimeException("Unauthorized access to care plans");
+            throw new UnauthorizedException("Unauthorized access to care plans");
         }
         
         return ResponseEntity.ok(carePlanService.getPatientCarePlans(patientId));
     }
 
     @GetMapping("/creator/{creatorId}")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'DIETITIAN')")
     public ResponseEntity<List<CarePlanDTO>> getCreatorCarePlans(@PathVariable Long creatorId, Authentication auth) {
-        User currentUser = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = authUtil.getAuthenticatedUser(auth);
         
         if (!currentUser.getId().equals(creatorId)) {
-            throw new RuntimeException("Cannot access other users' created care plans");
+            throw new UnauthorizedException("Cannot access other users' created care plans");
         }
         
         return ResponseEntity.ok(carePlanService.getCreatorCarePlans(creatorId));

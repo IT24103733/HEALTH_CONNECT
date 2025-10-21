@@ -1,11 +1,14 @@
 package com.example.app.controller;
 
 import com.example.app.dto.SupportTicketDTO;
+import com.example.app.dto.SupportTicketRequest;
 import com.example.app.entity.SupportTicket;
 import com.example.app.entity.User;
 import com.example.app.service.SupportTicketService;
-import com.example.app.service.UserService;
+import com.example.app.util.AuthUtil;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -15,39 +18,28 @@ import java.util.Map;
 @RequestMapping("/api/support-tickets")
 public class SupportTicketController {
     private final SupportTicketService ticketService;
-    private final UserService userService;
+    private final AuthUtil authUtil;
 
-    public SupportTicketController(SupportTicketService ticketService, UserService userService) {
+    public SupportTicketController(SupportTicketService ticketService, AuthUtil authUtil) {
         this.ticketService = ticketService;
-        this.userService = userService;
+        this.authUtil = authUtil;
     }
 
     @PostMapping
-    public ResponseEntity<SupportTicketDTO> createTicket(@RequestBody Map<String, String> request,
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<SupportTicketDTO> createTicket(@Valid @RequestBody SupportTicketRequest request,
                                                          Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() != User.Role.PATIENT) {
-            throw new RuntimeException("Only patients can create tickets");
-        }
-
-        String subject = request.get("subject");
-        String description = request.get("description");
+        User user = authUtil.getAuthenticatedUser(auth);
 
         SupportTicketDTO dto = SupportTicketDTO.fromEntity(
-                ticketService.createTicket(user.getId(), subject, description));
+                ticketService.createTicket(user.getId(), request.getSubject(), request.getDescription()));
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/{id}/accept")
+    @PreAuthorize("hasRole('SUPPORT_STAFF')")
     public ResponseEntity<SupportTicketDTO> acceptTicket(@PathVariable Long id, Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() != User.Role.SUPPORT_STAFF) {
-            throw new RuntimeException("Only support staff can accept tickets");
-        }
+        User user = authUtil.getAuthenticatedUser(auth);
 
         SupportTicketDTO dto = SupportTicketDTO.fromEntity(
                 ticketService.acceptTicket(id, user.getId()));
@@ -55,44 +47,35 @@ public class SupportTicketController {
     }
 
     @PutMapping("/{id}/resolve")
+    @PreAuthorize("hasRole('SUPPORT_STAFF')")
     public ResponseEntity<Void> resolveTicket(@PathVariable Long id, Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authUtil.getAuthenticatedUser(auth);
         
         ticketService.resolveTicket(id, user.getId());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/queue")
-    public ResponseEntity<List<SupportTicketDTO>> getOpenTickets(Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() != User.Role.SUPPORT_STAFF) {
-            throw new RuntimeException("Only support staff can view queue");
-        }
-
+    @PreAuthorize("hasRole('SUPPORT_STAFF')")
+    public ResponseEntity<List<SupportTicketDTO>> getOpenTickets() {
         return ResponseEntity.ok(ticketService.getOpenTickets());
     }
 
     @GetMapping("/my-tickets")
+    @PreAuthorize("hasAnyRole('PATIENT', 'SUPPORT_STAFF')")
     public ResponseEntity<List<SupportTicketDTO>> getMyTickets(Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authUtil.getAuthenticatedUser(auth);
         
         if (user.getRole() == User.Role.PATIENT) {
             return ResponseEntity.ok(ticketService.getPatientTickets(user.getId()));
-        } else if (user.getRole() == User.Role.SUPPORT_STAFF) {
-            return ResponseEntity.ok(ticketService.getStaffTickets(user.getId()));
         }
-        
-        throw new RuntimeException("Unauthorized access");
+        return ResponseEntity.ok(ticketService.getStaffTickets(user.getId()));
     }
 
     @GetMapping("/{id}/chat-access")
+    @PreAuthorize("hasAnyRole('PATIENT', 'SUPPORT_STAFF')")
     public ResponseEntity<Map<String, Boolean>> checkChatAccess(@PathVariable Long id, Authentication auth) {
-        User user = userService.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authUtil.getAuthenticatedUser(auth);
         
         SupportTicket ticket = ticketService.getTicketById(id);
         boolean hasAccess = ticket.getPatientId().equals(user.getId()) || 
