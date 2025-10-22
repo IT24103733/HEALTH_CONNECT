@@ -32,7 +32,7 @@ public class HealthMetricController {
     }
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<HealthMetricDTO> logMetric(@Valid @RequestBody HealthMetricRequest request, Authentication auth) {
         User currentUser = authUtil.getAuthenticatedUser(auth);
         
