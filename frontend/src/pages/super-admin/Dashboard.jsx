@@ -42,8 +42,8 @@ export default function SuperAdminDashboard() {
 
   const loadUserCount = async () => {
     try {
-      const data = await api.getUsers(0, 1000)
-      setActiveUsers(data.content ? data.content.length : data.length || 0)
+      const activeCount = await api.getActiveUsersCount()
+      setActiveUsers(activeCount.activeUsers || 0)
     } catch (error) {
       console.error('Failed to load user count:', error)
     } finally {

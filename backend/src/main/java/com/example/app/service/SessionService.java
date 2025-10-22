@@ -50,4 +50,9 @@ public class SessionService {
     public Optional<UserSession> getSessionByToken(String token) {
         return sessionRepository.findByToken(token);
     }
+
+    public long getActiveUsersCount() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(30);
+        return sessionRepository.countActiveUsers(cutoffTime);
+    }
 }

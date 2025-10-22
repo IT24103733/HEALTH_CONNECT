@@ -30,12 +30,12 @@ export default function MealPlans() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [plansData, usersData] = await Promise.all([
+      const [plansData, patientsData] = await Promise.all([
         api.getCreatorCarePlans(user.id),
-        api.getUsers(0, 1000)
+        api.getAcceptedPatients()
       ])
       setMealPlans(plansData.filter(plan => plan.planType === 'MEAL_PLAN'))
-      setPatients((usersData.content || usersData).filter(u => u.role === 'PATIENT'))
+      setPatients(patientsData)
     } catch (error) {
       toast({ title: 'Error loading data', description: error.message, status: 'error', duration: 5000, position: 'top' })
     } finally {
@@ -177,7 +177,9 @@ export default function MealPlans() {
                       isDisabled={editingPlan !== null}
                     >
                       {patients.map(patient => (
-                        <option key={patient.id} value={patient.id}>{patient.name} ({patient.email})</option>
+                        <option key={patient.id} value={patient.id}>
+                          Patient ID: {patient.id} (Age: {patient.age}, Weight: {patient.weight}kg, Height: {patient.height}cm)
+                        </option>
                       ))}
                     </Select>
                   </Box>

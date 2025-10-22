@@ -42,6 +42,15 @@ export default function SupportChat() {
       const tickets = await api.getMyTickets()
       const currentTicket = tickets.find(t => t.id === parseInt(ticketId))
       setTicket(currentTicket)
+      
+      const msgs = await api.getTicketMessages(ticketId)
+      const formattedMessages = msgs.map(m => ({
+        id: m.id,
+        text: m.content,
+        sender: m.senderId === user.id ? 'user' : 'agent',
+        timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }))
+      setMessages(formattedMessages)
     } catch (error) {
       toast({ title: 'Error loading ticket', description: error.message, status: 'error', duration: 5000, position: 'top' })
     } finally {
@@ -68,8 +77,7 @@ export default function SupportChat() {
   const handleSendMessage = async () => {
     if (inputMessage.trim() && ticket) {
       try {
-        const recipientId = ticket.assignedStaffId || 1
-        await api.sendTicketMessage(ticketId, recipientId, inputMessage)
+        await api.sendTicketMessage(ticketId, inputMessage)
         const newMessage = {
           id: Date.now(),
           text: inputMessage,

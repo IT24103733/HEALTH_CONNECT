@@ -72,6 +72,10 @@ public class Appointment {
         this.notes = notes;
     }
 
+    public void setScheduledTime(LocalDateTime scheduledTime) {
+        this.scheduledTime = scheduledTime;
+    }
+
     public enum AppointmentStatus {
         SCHEDULED, COMPLETED, CANCELLED, NO_SHOW
     }

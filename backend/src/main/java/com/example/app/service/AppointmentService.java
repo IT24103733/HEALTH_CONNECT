@@ -88,4 +88,25 @@ public class AppointmentService {
                 .map(AppointmentDTO::fromEntity)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public Appointment updateAppointmentTime(Long appointmentId, Long patientId, LocalDateTime newScheduledTime) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        if (!appointment.getPatientId().equals(patientId)) {
+            throw new RuntimeException("Unauthorized access");
+        }
+        
+        if (appointment.getStatus() != Appointment.AppointmentStatus.SCHEDULED) {
+            throw new RuntimeException("Can only update scheduled appointments");
+        }
+        
+        if (hasConflict(appointment.getClinicianId(), newScheduledTime)) {
+            throw new RuntimeException("Time slot conflict detected");
+        }
+        
+        appointment.setScheduledTime(newScheduledTime);
+        return appointmentRepository.save(appointment);
+    }
 }

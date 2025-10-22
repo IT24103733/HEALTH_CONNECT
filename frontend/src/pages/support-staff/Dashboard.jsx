@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import SupportStaffSidebar from '../../components/SupportStaffSidebar'
 import BreadcrumbNav from '../../components/Breadcrumb'
 import SupportStaffOnboarding from '../../components/SupportStaffOnboarding'
+import { api } from '../../services/api'
 
 export default function SupportStaffDashboard() {
   const { colorMode } = useColorMode()
@@ -13,7 +14,21 @@ export default function SupportStaffDashboard() {
     return saved ? JSON.parse(saved) : []
   })
   const [newTask, setNewTask] = useState('')
-  const [completedTickets] = useState(24)
+  const [completedTickets, setCompletedTickets] = useState(0)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      const tickets = await api.getMyTickets()
+      const resolved = tickets.filter(t => t.status === 'RESOLVED').length
+      setCompletedTickets(resolved)
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error)
+    }
+  }
 
   const breadcrumbItems = [
     { label: 'Support Staff', path: '/support-staff/dashboard' },

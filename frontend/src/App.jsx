@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/patient/Dashboard'
 import Appointments from './pages/patient/Appointments'
 import DietRequest from './pages/patient/DietRequest'
+import MyDietRequests from './pages/patient/MyDietRequests'
 import Support from './pages/patient/Support'
 import SupportChat from './pages/patient/SupportChat'
 import MyTickets from './pages/patient/MyTickets'
@@ -30,6 +31,7 @@ import DietitianMealPlans from './pages/dietitian/MealPlans'
 import DietitianDietRequests from './pages/dietitian/DietRequests'
 import SupportStaffDashboard from './pages/support-staff/Dashboard'
 import PendingTickets from './pages/support-staff/PendingTickets'
+import ActiveTickets from './pages/support-staff/ActiveTickets'
 import TicketChat from './pages/support-staff/TicketChat'
 import ContactStaff from './pages/support-staff/ContactStaff'
 import SupportStaffProfile from './pages/support-staff/Profile'
@@ -54,6 +56,7 @@ function App() {
       <Route path="/patient/dashboard" element={<ProtectedRoute allowedRoles={['PATIENT']}><Dashboard /></ProtectedRoute>} />
       <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={['PATIENT']}><Appointments /></ProtectedRoute>} />
       <Route path="/patient/diet-request" element={<ProtectedRoute allowedRoles={['PATIENT']}><DietRequest /></ProtectedRoute>} />
+      <Route path="/patient/my-diet-requests" element={<ProtectedRoute allowedRoles={['PATIENT']}><MyDietRequests /></ProtectedRoute>} />
       <Route path="/patient/support" element={<ProtectedRoute allowedRoles={['PATIENT']}><Support /></ProtectedRoute>} />
       <Route path="/patient/support/my-tickets" element={<ProtectedRoute allowedRoles={['PATIENT']}><MyTickets /></ProtectedRoute>} />
       <Route path="/patient/support/chat/:ticketId" element={<ProtectedRoute allowedRoles={['PATIENT']}><SupportChat /></ProtectedRoute>} />
@@ -77,6 +80,7 @@ function App() {
       <Route path="/dietitian/diet-requests" element={<ProtectedRoute allowedRoles={['DIETITIAN']}><DietitianDietRequests /></ProtectedRoute>} />
       <Route path="/support-staff/dashboard" element={<ProtectedRoute allowedRoles={['SUPPORT_STAFF']}><SupportStaffDashboard /></ProtectedRoute>} />
       <Route path="/support-staff/tickets" element={<ProtectedRoute allowedRoles={['SUPPORT_STAFF']}><PendingTickets /></ProtectedRoute>} />
+      <Route path="/support-staff/active-tickets" element={<ProtectedRoute allowedRoles={['SUPPORT_STAFF']}><ActiveTickets /></ProtectedRoute>} />
       <Route path="/support-staff/chat/:ticketId" element={<ProtectedRoute allowedRoles={['SUPPORT_STAFF']}><TicketChat /></ProtectedRoute>} />
       <Route path="/support-staff/contact" element={<ProtectedRoute allowedRoles={['SUPPORT_STAFF']}><ContactStaff /></ProtectedRoute>} />
       <Route path="/support-staff/profile" element={<ProtectedRoute allowedRoles={['SUPPORT_STAFF']}><SupportStaffProfile /></ProtectedRoute>} />

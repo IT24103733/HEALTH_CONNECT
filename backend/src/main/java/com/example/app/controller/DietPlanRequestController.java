@@ -13,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/diet-requests")
@@ -86,5 +89,39 @@ public class DietPlanRequestController {
             return ResponseEntity.ok(requestService.getPatientRequests(user.getId()));
         }
         return ResponseEntity.ok(requestService.getDieticianRequests(user.getId()));
+    }
+
+    @GetMapping("/accepted-patients")
+    @PreAuthorize("hasRole('DIETITIAN')")
+    public ResponseEntity<List<Map<String, Object>>> getAcceptedPatients(Authentication auth) {
+        User dietitian = authUtil.getAuthenticatedUser(auth);
+        
+        List<DietPlanRequestDTO> acceptedRequests = requestService.getDieticianRequests(dietitian.getId())
+            .stream()
+            .filter(req -> "ACCEPTED".equals(req.getStatus()))
+            .collect(Collectors.toList());
+        
+        List<Map<String, Object>> patients = acceptedRequests.stream()
+            .collect(Collectors.groupingBy(DietPlanRequestDTO::getPatientId))
+            .entrySet()
+            .stream()
+            .map(entry -> {
+                Long patientId = entry.getKey();
+                DietPlanRequestDTO request = entry.getValue().get(0);
+                
+                Map<String, Object> patientInfo = new HashMap<>();
+                patientInfo.put("id", patientId);
+                patientInfo.put("age", request.getAge());
+                patientInfo.put("weight", request.getWeight());
+                patientInfo.put("height", request.getHeight());
+                patientInfo.put("dietaryRestrictions", request.getDietaryRestrictions());
+                patientInfo.put("healthGoals", request.getHealthGoals());
+                patientInfo.put("activityLevel", request.getActivityLevel());
+                
+                return patientInfo;
+            })
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(patients);
     }
 }

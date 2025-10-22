@@ -80,7 +80,7 @@ export default function DietRequests() {
           <Text fontWeight="bold">{request.patientId}</Text>
         </HStack>
 
-        <HStack p={3} bg={colorMode === 'dark' ? 'whiteAlpha.50' : 'gray.50'} rounded="lg" spacing={6}>
+        <HStack p={3} bg={colorMode === 'dark' ? 'whiteAlpha.50' : 'gray.50'} rounded="lg" spacing={6} flexWrap="wrap">
           <HStack>
             <Icon as={FaBirthdayCake} color="gray.500" />
             <Text fontWeight="semibold" color="gray.500">Age:</Text>
@@ -90,6 +90,11 @@ export default function DietRequests() {
             <Icon as={FaWeight} color="gray.500" />
             <Text fontWeight="semibold" color="gray.500">Weight:</Text>
             <Text fontWeight="bold">{request.weight} kg</Text>
+          </HStack>
+          <HStack>
+            <Icon as={FaWeight} color="gray.500" />
+            <Text fontWeight="semibold" color="gray.500">Height:</Text>
+            <Text fontWeight="bold">{request.height} cm</Text>
           </HStack>
         </HStack>
 

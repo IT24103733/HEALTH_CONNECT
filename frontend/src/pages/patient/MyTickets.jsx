@@ -36,8 +36,10 @@ export default function MyTickets() {
   const getStatusColor = (status) => {
     switch(status) {
       case 'OPEN': return 'orange'
+      case 'ASSIGNED': return 'blue'
       case 'IN_PROGRESS': return 'blue'
       case 'RESOLVED': return 'green'
+      case 'CLOSED': return 'gray'
       default: return 'gray'
     }
   }
@@ -73,7 +75,7 @@ export default function MyTickets() {
                     <Text color="gray.600">{ticket.description}</Text>
                     <Text fontSize="sm" color="gray.500">Created: {new Date(ticket.createdAt).toLocaleString()}</Text>
                   </VStack>
-                  {ticket.status !== 'RESOLVED' && (
+                  {(ticket.status === 'ASSIGNED' || ticket.status === 'IN_PROGRESS') && (
                     <Button
                       bgGradient="linear(to-r, brand.500, purple.400)"
                       color="white"
@@ -82,6 +84,9 @@ export default function MyTickets() {
                     >
                       Open Chat
                     </Button>
+                  )}
+                  {ticket.status === 'OPEN' && (
+                    <Badge colorScheme="yellow" fontSize="md" p={2}>Waiting for staff assignment</Badge>
                   )}
                 </HStack>
               </Box>

@@ -59,9 +59,32 @@ export const api = {
     return handleResponse(response)
   },
 
+  getActiveUsersCount: async () => {
+    const response = await fetch(`${API_BASE_URL}/users/active-count`, {
+      headers: getAuthHeader()
+    })
+    return handleResponse(response)
+  },
+
+  getCurrentUser: async () => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: getAuthHeader()
+    })
+    return handleResponse(response)
+  },
+
   getUserById: async (id) => {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       headers: getAuthHeader()
+    })
+    return handleResponse(response)
+  },
+
+  updateCurrentUser: async (userData) => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'PUT',
+      headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
     })
     return handleResponse(response)
   },
@@ -124,6 +147,15 @@ export const api = {
     return handleResponse(response)
   },
 
+  updateAppointment: async (id, scheduledTime) => {
+    const response = await fetch(`${API_BASE_URL}/appointments/${id}`, {
+      method: 'PUT',
+      headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scheduledTime })
+    })
+    return handleResponse(response)
+  },
+
   checkAppointmentConflict: async (clinicianId, scheduledTime) => {
     const response = await fetch(`${API_BASE_URL}/appointments/check-conflict?clinicianId=${clinicianId}&scheduledTime=${scheduledTime}`, {
       headers: getAuthHeader()
@@ -178,7 +210,17 @@ export const api = {
       method: 'PUT',
       headers: getAuthHeader()
     })
-    return handleResponse(response)
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+      throw new Error('Session expired')
+    }
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'An error occurred' }))
+      throw new Error(error.message || 'Request failed')
+    }
+    return { success: true }
   },
 
   // Compliance
@@ -237,6 +279,33 @@ export const api = {
     return handleResponse(response)
   },
 
+  updateDietRequest: async (id, data) => {
+    const response = await fetch(`${API_BASE_URL}/diet-requests/${id}`, {
+      method: 'PUT',
+      headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    return handleResponse(response)
+  },
+
+  deleteDietRequest: async (id) => {
+    const response = await fetch(`${API_BASE_URL}/diet-requests/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    })
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+      throw new Error('Session expired')
+    }
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'An error occurred' }))
+      throw new Error(error.message || 'Request failed')
+    }
+    return { success: true }
+  },
+
   // Support Ticket Messages
   getMyTickets: async () => {
     const response = await fetch(`${API_BASE_URL}/support-tickets/my-tickets`, {
@@ -262,11 +331,18 @@ export const api = {
     return handleResponse(response)
   },
 
-  sendTicketMessage: async (ticketId, recipientId, content) => {
+  sendTicketMessage: async (ticketId, content) => {
     const response = await fetch(`${API_BASE_URL}/messages/ticket/${ticketId}`, {
       method: 'POST',
       headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipientId, content })
+      body: JSON.stringify({ content })
+    })
+    return handleResponse(response)
+  },
+
+  getTicketMessages: async (ticketId) => {
+    const response = await fetch(`${API_BASE_URL}/messages/ticket/${ticketId}`, {
+      headers: getAuthHeader()
     })
     return handleResponse(response)
   },
@@ -330,6 +406,13 @@ export const api = {
 
   getCreatorCarePlans: async (creatorId) => {
     const response = await fetch(`${API_BASE_URL}/care-plans/creator/${creatorId}`, {
+      headers: getAuthHeader()
+    })
+    return handleResponse(response)
+  },
+
+  getAcceptedPatients: async () => {
+    const response = await fetch(`${API_BASE_URL}/diet-requests/accepted-patients`, {
       headers: getAuthHeader()
     })
     return handleResponse(response)

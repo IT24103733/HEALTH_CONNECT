@@ -1,11 +1,18 @@
-import { Box, VStack, HStack, Text, Icon, useColorMode, IconButton, Divider } from '@chakra-ui/react'
+import { Box, VStack, HStack, Text, Icon, useColorMode, IconButton, Divider, Button } from '@chakra-ui/react'
 import { MoonIcon, SunIcon } from '@chakra-ui/icons'
-import { FaHome, FaUsers, FaFileAlt, FaPhoneAlt, FaUser, FaHeart } from 'react-icons/fa'
-import { Link, useLocation } from 'react-router-dom'
+import { FaHome, FaUsers, FaFileAlt, FaPhoneAlt, FaUser, FaHeart, FaSignOutAlt } from 'react-icons/fa'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 export default function SuperAdminSidebar() {
   const { colorMode, toggleColorMode } = useColorMode()
   const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    navigate('/login')
+  }
 
   const menuItems = [
     { icon: FaHome, label: 'Dashboard', path: '/super-admin/dashboard' },
@@ -54,7 +61,7 @@ export default function SuperAdminSidebar() {
         ))}
       </VStack>
       <Divider mb={4} />
-      <HStack justify="space-between">
+      <HStack justify="space-between" mb={3}>
         <Text fontSize="sm" color="gray.600">Theme</Text>
         <IconButton
           icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}
@@ -64,6 +71,16 @@ export default function SuperAdminSidebar() {
           aria-label="Toggle theme"
         />
       </HStack>
+      <Button
+        leftIcon={<Icon as={FaSignOutAlt} />}
+        colorScheme="red"
+        variant="outline"
+        size="sm"
+        w="100%"
+        onClick={handleLogout}
+      >
+        Logout
+      </Button>
     </Box>
   )
 }

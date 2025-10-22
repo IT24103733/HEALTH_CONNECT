@@ -2,6 +2,7 @@ package com.example.app.controller;
 
 import com.example.app.dto.UserDTO;
 import com.example.app.exception.NotFoundException;
+import com.example.app.service.SessionService;
 import com.example.app.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,9 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
+    private final SessionService sessionService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SessionService sessionService) {
         this.userService = userService;
+        this.sessionService = sessionService;
     }
 
     @GetMapping
@@ -34,6 +37,22 @@ public class UserController {
         return ResponseEntity.ok(userPage);
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        return ResponseEntity.ok(userService.getCurrentUser());
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDTO> updateCurrentUser(@RequestBody Map<String, String> request) {
+        String name = request.get("name");
+        String email = request.get("email");
+        String specialization = request.get("specialization");
+        UserDTO updated = userService.updateCurrentUser(name, email, specialization);
+        return ResponseEntity.ok(updated);
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
@@ -46,7 +65,8 @@ public class UserController {
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody Map<String, String> request) {
         String name = request.get("name");
         String email = request.get("email");
-        UserDTO updated = UserDTO.fromEntity(userService.updateUser(id, name, email));
+        String specialization = request.get("specialization");
+        UserDTO updated = UserDTO.fromEntity(userService.updateUserById(id, name, email, specialization));
         return ResponseEntity.ok(updated);
     }
 
@@ -55,5 +75,12 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/active-count")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<Map<String, Long>> getActiveUsersCount() {
+        long count = sessionService.getActiveUsersCount();
+        return ResponseEntity.ok(Map.of("activeUsers", count));
     }
 }

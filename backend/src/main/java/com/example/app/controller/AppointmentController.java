@@ -122,4 +122,15 @@ public class AppointmentController {
         boolean hasConflict = appointmentService.hasConflict(clinicianId, time);
         return ResponseEntity.ok(Map.of("hasConflict", hasConflict));
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<Map<String, String>> updateAppointmentTime(@PathVariable Long id,
+                                                                      @Valid @RequestBody AppointmentRequest request,
+                                                                      Authentication auth) {
+        User patient = authUtil.getAuthenticatedUser(auth);
+        
+        appointmentService.updateAppointmentTime(id, patient.getId(), request.getScheduledTime());
+        return ResponseEntity.ok(Map.of("message", "Appointment time updated successfully"));
+    }
 }

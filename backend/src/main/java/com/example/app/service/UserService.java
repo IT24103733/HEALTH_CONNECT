@@ -4,6 +4,7 @@ import com.example.app.dto.UserDTO;
 import com.example.app.entity.User;
 import com.example.app.repository.UserRepository;
 import com.example.app.util.HtmlSanitizer;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,15 +50,34 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, String name, String email) {
+    public User updateUserById(Long id, String name, String email, String specialization) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         String sanitizedName = htmlSanitizer.sanitize(name);
         user.setName(sanitizedName);
         user.setEmail(email);
+        if (specialization != null) {
+            user.setSpecialization(htmlSanitizer.sanitize(specialization));
+        }
         
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public UserDTO updateCurrentUser(String name, String email, String specialization) {
+        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        String sanitizedName = htmlSanitizer.sanitize(name);
+        user.setName(sanitizedName);
+        user.setEmail(email);
+        if (specialization != null) {
+            user.setSpecialization(htmlSanitizer.sanitize(specialization));
+        }
+        
+        return UserDTO.fromEntity(userRepository.save(user));
     }
 
     public List<User> findByRole(User.Role role) {
@@ -77,5 +97,12 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public UserDTO getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return UserDTO.fromEntity(user);
     }
 }

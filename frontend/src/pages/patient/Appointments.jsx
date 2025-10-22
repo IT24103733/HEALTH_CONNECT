@@ -48,9 +48,14 @@ export default function Appointments() {
   }
 
   const handleEditAppointment = (appointment) => {
+    const aptDate = new Date(appointment.scheduledTime)
+    const date = aptDate.toISOString().split('T')[0]
+    const time = aptDate.toTimeString().slice(0, 5)
+    
     setEditingId(appointment.id)
     setSelectedClinician(clinicians.find(c => c.id === appointment.clinicianId))
-    setAppointmentData({ date: appointment.date, time: appointment.time, clinicianId: appointment.clinicianId })
+    setAppointmentData({ date, time, clinicianId: appointment.clinicianId })
+    setHasConflict(false)
     onOpen()
   }
 
@@ -98,12 +103,17 @@ export default function Appointments() {
 
     try {
       const scheduledTime = `${appointmentData.date}T${appointmentData.time}:00`
-      await api.scheduleAppointment(appointmentData.clinicianId, scheduledTime, '')
-      toast({ title: 'Appointment booked!', status: 'success', duration: 3000, position: 'top' })
+      if (editingId) {
+        await api.updateAppointment(editingId, scheduledTime)
+        toast({ title: 'Appointment updated!', status: 'success', duration: 3000, position: 'top' })
+      } else {
+        await api.scheduleAppointment(appointmentData.clinicianId, scheduledTime, '')
+        toast({ title: 'Appointment booked!', status: 'success', duration: 3000, position: 'top' })
+      }
       await loadData()
       onClose()
     } catch (error) {
-      toast({ title: 'Booking failed', description: error.message, status: 'error', duration: 5000, position: 'top' })
+      toast({ title: editingId ? 'Update failed' : 'Booking failed', description: error.message, status: 'error', duration: 5000, position: 'top' })
     }
   }
 
@@ -167,12 +177,15 @@ export default function Appointments() {
                   const clinician = clinicians.find(c => c.id === apt.clinicianId)
                   const aptDate = new Date(apt.scheduledTime)
                   return (
-                    <Box key={apt.id} p={6} bg={colorMode === 'dark' ? 'whiteAlpha.100' : 'purple.50'} rounded="xl" border="2px" borderColor="brand.500" _hover={{ shadow: 'xl', transform: 'translateY(-2px)' }} transition="all 0.3s">
+                    <Box key={apt.id} p={6} bg={colorMode === 'dark' ? 'whiteAlpha.100' : 'purple.50'} rounded="xl" border="2px" borderColor={apt.status === 'CANCELLED' ? 'red.500' : 'brand.500'} _hover={{ shadow: 'xl', transform: 'translateY(-2px)' }} transition="all 0.3s">
                       <HStack justify="space-between" mb={4}>
                         <HStack spacing={4}>
                           <Avatar name={clinician?.name} bg="brand.500" size="lg" />
                           <VStack align="start" spacing={1}>
-                            <Text fontWeight="bold" fontSize="xl">{clinician?.name}</Text>
+                            <HStack>
+                              <Text fontWeight="bold" fontSize="xl">{clinician?.name}</Text>
+                              {apt.status === 'CANCELLED' && <Badge colorScheme="red" fontSize="sm">CANCELLED</Badge>}
+                            </HStack>
                             {clinician && (
                               <>
                                 {clinician.specialty && <Text fontSize="sm" color="gray.600">{clinician.specialty}</Text>}
@@ -181,9 +194,12 @@ export default function Appointments() {
                             )}
                           </VStack>
                         </HStack>
-                        <HStack spacing={2}>
-                          <IconButton icon={<FaTrash />} colorScheme="red" size="lg" onClick={() => handleDeleteAppointment(apt.id)} aria-label="Delete" />
-                        </HStack>
+                        {apt.status === 'SCHEDULED' && (
+                          <HStack spacing={2}>
+                            <IconButton icon={<FaEdit />} colorScheme="blue" size="lg" onClick={() => handleEditAppointment(apt)} aria-label="Edit" />
+                            <IconButton icon={<FaTrash />} colorScheme="red" size="lg" onClick={() => handleDeleteAppointment(apt.id)} aria-label="Delete" />
+                          </HStack>
+                        )}
                       </HStack>
                       <SimpleGrid columns={2} spacing={4}>
                         <HStack p={3} bg={colorMode === 'dark' ? 'whiteAlpha.200' : 'white'} rounded="lg">
@@ -217,15 +233,7 @@ export default function Appointments() {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              {editingId && (
-                <VStack align="start" w="100%">
-                  <Text fontWeight="semibold">Clinician</Text>
-                  <Select value={appointmentData.clinicianId} onChange={(e) => setAppointmentData({...appointmentData, clinicianId: parseInt(e.target.value)})}>
-                    {clinicians.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </Select>
-                </VStack>
-              )}
-              {!editingId && selectedClinician && (
+              {selectedClinician && (
                 <HStack w="100%" p={4} bg={colorMode === 'dark' ? 'whiteAlpha.100' : 'purple.50'} rounded="lg">
                   <Avatar name={selectedClinician.name} bg="brand.500" size="md" />
                   <VStack align="start" spacing={0}>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import AdminSidebar from '../../components/AdminSidebar'
 import BreadcrumbNav from '../../components/Breadcrumb'
 import AdminOnboarding from '../../components/AdminOnboarding'
+import { api } from '../../services/api'
 
 export default function AdminDashboard() {
   const { colorMode } = useColorMode()
@@ -13,8 +14,27 @@ export default function AdminDashboard() {
     return saved ? JSON.parse(saved) : []
   })
   const [newTask, setNewTask] = useState('')
-  const [totalUsers] = useState(156)
-  const [activeUsers] = useState(142)
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [activeUsers, setActiveUsers] = useState(0)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      const usersResponse = await api.getUsers(0, 1000)
+      const totalCount = usersResponse.totalElements || (usersResponse.content ? usersResponse.content.length : 0)
+      setTotalUsers(totalCount)
+      
+      const activeCount = await api.getActiveUsersCount()
+      setActiveUsers(activeCount.activeUsers || 0)
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error)
+      setTotalUsers(0)
+      setActiveUsers(0)
+    }
+  }
 
   const breadcrumbItems = [
     { label: 'Admin', path: '/admin/dashboard' },

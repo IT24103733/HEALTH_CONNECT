@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import DietitianSidebar from '../../components/DietitianSidebar'
 import BreadcrumbNav from '../../components/Breadcrumb'
 import DietitianOnboarding from '../../components/DietitianOnboarding'
+import { api } from '../../services/api'
+import { getCurrentUser } from '../../services/auth'
 
 export default function DietitianDashboard() {
   const { colorMode } = useColorMode()
@@ -18,9 +20,10 @@ export default function DietitianDashboard() {
     return localStorage.getItem('dietitianCharge') || ''
   })
   const [tempCharge, setTempCharge] = useState('')
-  const [todayAppointments] = useState(2)
-  const [pendingDietPlans] = useState(5)
+  const [todayAppointments, setTodayAppointments] = useState(0)
+  const [pendingDietPlans, setPendingDietPlans] = useState(0)
   const [revenue, setRevenue] = useState(0)
+  const user = getCurrentUser()
 
   const breadcrumbItems = [
     { label: 'Dietitian', path: '/dietitian/dashboard' },
@@ -33,7 +36,28 @@ export default function DietitianDashboard() {
       onOnboardingOpen()
       localStorage.setItem('hasSeenDietitianOnboarding', 'true')
     }
+    loadDashboardData()
   }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      const [appointments, dietRequests] = await Promise.all([
+        api.getMyAppointments(),
+        api.getDietRequestQueue()
+      ])
+      
+      const today = new Date().toISOString().split('T')[0]
+      const todayAppts = appointments.filter(apt => {
+        const aptDate = new Date(apt.scheduledTime).toISOString().split('T')[0]
+        return aptDate === today && apt.status === 'SCHEDULED'
+      })
+      
+      setTodayAppointments(todayAppts.length)
+      setPendingDietPlans(dietRequests.length)
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+    }
+  }
 
   useEffect(() => {
     localStorage.setItem('dietitianChecklist', JSON.stringify(checklist))
