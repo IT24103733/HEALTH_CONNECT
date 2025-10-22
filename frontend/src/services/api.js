@@ -180,6 +180,24 @@ export const api = {
     return handleResponse(response)
   },
 
+  deleteHealthMetric: async (id) => {
+    const response = await fetch(`${API_BASE_URL}/health-metrics/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    })
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+      throw new Error('Session expired')
+    }
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'An error occurred' }))
+      throw new Error(error.message || 'Request failed')
+    }
+    return { success: true }
+  },
+
   // Support Tickets
   createSupportTicket: async (subject, description) => {
     const response = await fetch(`${API_BASE_URL}/support-tickets`, {
@@ -414,6 +432,15 @@ export const api = {
   getAcceptedPatients: async () => {
     const response = await fetch(`${API_BASE_URL}/diet-requests/accepted-patients`, {
       headers: getAuthHeader()
+    })
+    return handleResponse(response)
+  },
+
+  updateUserRole: async (id, role) => {
+    const response = await fetch(`${API_BASE_URL}/users/${id}/role`, {
+      method: 'PUT',
+      headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role })
     })
     return handleResponse(response)
   }

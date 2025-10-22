@@ -43,7 +43,7 @@ export default function SuperAdminUserManagement() {
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.id.toLowerCase().includes(searchQuery.toLowerCase())
+    user.id.toString().includes(searchQuery)
   )
 
   const handleEdit = (user) => {
@@ -53,7 +53,8 @@ export default function SuperAdminUserManagement() {
 
   const handleSave = async () => {
     try {
-      await api.updateUser(selectedUser.id, { name: selectedUser.name, email: selectedUser.email })
+      await api.updateUser(selectedUser.id, { name: selectedUser.name, email: selectedUser.email, specialization: selectedUser.specialization })
+      await api.updateUserRole(selectedUser.id, selectedUser.role)
       toast({ title: 'User updated successfully!', status: 'success', duration: 3000, isClosable: true, position: 'top' })
       await loadUsers()
       onClose()
@@ -203,6 +204,10 @@ export default function SuperAdminUserManagement() {
                     <FormControl>
                       <FormLabel>Email</FormLabel>
                       <Input value={selectedUser.email} onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Specialization</FormLabel>
+                      <Input value={selectedUser.specialization || ''} onChange={(e) => setSelectedUser({...selectedUser, specialization: e.target.value})} placeholder="e.g., Cardiology" />
                     </FormControl>
                     <FormControl>
                       <FormLabel>Role</FormLabel>

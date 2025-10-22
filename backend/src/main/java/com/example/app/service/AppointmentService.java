@@ -61,11 +61,16 @@ public class AppointmentService {
     }
 
     public boolean hasConflict(Long clinicianId, LocalDateTime scheduledTime) {
+        return hasConflictExcluding(clinicianId, scheduledTime, null);
+    }
+
+    public boolean hasConflictExcluding(Long clinicianId, LocalDateTime scheduledTime, Long excludeAppointmentId) {
         LocalDateTime start = scheduledTime.minusMinutes(30);
         LocalDateTime end = scheduledTime.plusMinutes(30);
         List<Appointment> conflicts = appointmentRepository
                 .findByClinicianIdAndScheduledTimeBetween(clinicianId, start, end);
         return conflicts.stream()
+                .filter(apt -> excludeAppointmentId == null || !apt.getId().equals(excludeAppointmentId))
                 .anyMatch(apt -> apt.getStatus() == Appointment.AppointmentStatus.SCHEDULED);
     }
 
@@ -102,7 +107,7 @@ public class AppointmentService {
             throw new RuntimeException("Can only update scheduled appointments");
         }
         
-        if (hasConflict(appointment.getClinicianId(), newScheduledTime)) {
+        if (hasConflictExcluding(appointment.getClinicianId(), newScheduledTime, appointmentId)) {
             throw new RuntimeException("Time slot conflict detected");
         }
         

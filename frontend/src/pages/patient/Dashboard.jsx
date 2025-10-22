@@ -69,30 +69,35 @@ export default function Dashboard() {
   }
 
   const validateHealthData = () => {
+    if (!healthData.date || !healthData.caloriesIntake || !healthData.exerciseMinutes || !healthData.weight || !healthData.sleepHours || !healthData.waterIntake) {
+      toast({ title: 'Missing Fields', description: 'Please fill in all required fields', status: 'error', duration: 3000, position: 'top' })
+      return false
+    }
+
     const calories = parseInt(healthData.caloriesIntake)
     const exercise = parseInt(healthData.exerciseMinutes)
     const weight = parseFloat(healthData.weight)
     const sleep = parseInt(healthData.sleepHours)
     const water = parseInt(healthData.waterIntake)
 
-    if (healthData.caloriesIntake && (calories < 0 || calories > 10000)) {
-      toast({ title: 'Invalid Calories', description: 'Calories must be between 0 and 10,000', status: 'error', duration: 5000, position: 'top' })
+    if (isNaN(calories) || calories < 0 || calories > 10000) {
+      toast({ title: 'Invalid Calories', description: 'Calories must be between 0 and 10,000', status: 'error', duration: 3000, position: 'top' })
       return false
     }
-    if (healthData.exerciseMinutes && (exercise < 0 || exercise > 1440)) {
-      toast({ title: 'Invalid Exercise', description: 'Exercise minutes must be between 0 and 1,440 (24 hours)', status: 'error', duration: 5000, position: 'top' })
+    if (isNaN(exercise) || exercise < 0 || exercise > 1440) {
+      toast({ title: 'Invalid Exercise', description: 'Exercise minutes must be between 0 and 1,440', status: 'error', duration: 3000, position: 'top' })
       return false
     }
-    if (healthData.weight && (weight < 1 || weight > 500)) {
-      toast({ title: 'Invalid Weight', description: 'Weight must be between 1 and 500 kg', status: 'error', duration: 5000, position: 'top' })
+    if (isNaN(weight) || weight < 1 || weight > 500) {
+      toast({ title: 'Invalid Weight', description: 'Weight must be between 1 and 500 kg', status: 'error', duration: 3000, position: 'top' })
       return false
     }
-    if (healthData.sleepHours && (sleep < 0 || sleep > 24)) {
-      toast({ title: 'Invalid Sleep', description: 'Sleep hours must be between 0 and 24', status: 'error', duration: 5000, position: 'top' })
+    if (isNaN(sleep) || sleep < 0 || sleep > 24) {
+      toast({ title: 'Invalid Sleep', description: 'Sleep hours must be between 0 and 24', status: 'error', duration: 3000, position: 'top' })
       return false
     }
-    if (healthData.waterIntake && (water < 0 || water > 20000)) {
-      toast({ title: 'Invalid Water Intake', description: 'Water intake must be between 0 and 20,000 ml', status: 'error', duration: 5000, position: 'top' })
+    if (isNaN(water) || water < 0 || water > 20000) {
+      toast({ title: 'Invalid Water Intake', description: 'Water intake must be between 0 and 20,000 ml', status: 'error', duration: 3000, position: 'top' })
       return false
     }
     return true
@@ -127,8 +132,14 @@ export default function Dashboard() {
     onHealthModalOpen()
   }
 
-  const handleDeleteMetric = (date) => {
-    setDailyMetrics(dailyMetrics.filter(m => m.date !== date))
+  const handleDeleteMetric = async (metricId) => {
+    try {
+      await api.deleteHealthMetric(metricId)
+      toast({ title: 'Metric deleted', status: 'info', duration: 3000, position: 'top' })
+      await loadData()
+    } catch (error) {
+      toast({ title: 'Delete failed', description: error.message, status: 'error', duration: 5000, position: 'top' })
+    }
   }
 
   const getWeeklyAverage = () => {
@@ -207,7 +218,7 @@ export default function Dashboard() {
                   <Text fontSize="3xl" fontWeight="bold" color="brand.500">{item.healthScore}</Text>
                   <HStack spacing={2}>
                     <IconButton icon={<FaEdit />} size="xs" colorScheme="brand" variant="ghost" onClick={() => handleAddMetric(item.date)} aria-label="Edit" />
-                    <IconButton icon={<FaTrash />} size="xs" colorScheme="red" variant="ghost" onClick={() => handleDeleteMetric(item.date)} aria-label="Delete" />
+                    <IconButton icon={<FaTrash />} size="xs" colorScheme="red" variant="ghost" onClick={() => handleDeleteMetric(item.id)} aria-label="Delete" />
                   </HStack>
                 </VStack>
               ))}
@@ -225,29 +236,29 @@ export default function Dashboard() {
               <ModalCloseButton />
               <ModalBody>
                 <VStack align="start" mb={4}>
-                  <Text fontWeight="semibold">Date</Text>
-                  <Input type="date" value={healthData.date} onChange={(e) => setHealthData({...healthData, date: e.target.value})} />
+                  <Text fontWeight="semibold">Date *</Text>
+                  <Input type="date" value={healthData.date} onChange={(e) => setHealthData({...healthData, date: e.target.value})} max={new Date().toISOString().split('T')[0]} required />
                 </VStack>
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
                   <VStack align="start">
-                    <Text fontWeight="semibold">Calories Intake</Text>
-                    <Input type="number" placeholder="2000" value={healthData.caloriesIntake} onChange={(e) => setHealthData({...healthData, caloriesIntake: e.target.value})} />
+                    <Text fontWeight="semibold">Calories Intake *</Text>
+                    <Input type="number" placeholder="2000" min="0" max="10000" value={healthData.caloriesIntake} onChange={(e) => setHealthData({...healthData, caloriesIntake: e.target.value})} required />
                   </VStack>
                   <VStack align="start">
-                    <Text fontWeight="semibold">Exercise (minutes)</Text>
-                    <Input type="number" placeholder="30" value={healthData.exerciseMinutes} onChange={(e) => setHealthData({...healthData, exerciseMinutes: e.target.value})} />
+                    <Text fontWeight="semibold">Exercise (minutes) *</Text>
+                    <Input type="number" placeholder="30" min="0" max="1440" value={healthData.exerciseMinutes} onChange={(e) => setHealthData({...healthData, exerciseMinutes: e.target.value})} required />
                   </VStack>
                   <VStack align="start">
-                    <Text fontWeight="semibold">Weight (kg)</Text>
-                    <Input type="number" placeholder="70" value={healthData.weight} onChange={(e) => setHealthData({...healthData, weight: e.target.value})} />
+                    <Text fontWeight="semibold">Weight (kg) *</Text>
+                    <Input type="number" placeholder="70" min="1" max="500" step="0.1" value={healthData.weight} onChange={(e) => setHealthData({...healthData, weight: e.target.value})} required />
                   </VStack>
                   <VStack align="start">
-                    <Text fontWeight="semibold">Sleep (hours)</Text>
-                    <Input type="number" placeholder="8" value={healthData.sleepHours} onChange={(e) => setHealthData({...healthData, sleepHours: e.target.value})} />
+                    <Text fontWeight="semibold">Sleep (hours) *</Text>
+                    <Input type="number" placeholder="8" min="0" max="24" value={healthData.sleepHours} onChange={(e) => setHealthData({...healthData, sleepHours: e.target.value})} required />
                   </VStack>
                   <VStack align="start">
-                    <Text fontWeight="semibold">Water Intake (ml)</Text>
-                    <Input type="number" placeholder="2500" value={healthData.waterIntake} onChange={(e) => setHealthData({...healthData, waterIntake: e.target.value})} />
+                    <Text fontWeight="semibold">Water Intake (ml) *</Text>
+                    <Input type="number" placeholder="2500" min="0" max="20000" value={healthData.waterIntake} onChange={(e) => setHealthData({...healthData, waterIntake: e.target.value})} required />
                   </VStack>
                 </SimpleGrid>
                 <VStack align="start">

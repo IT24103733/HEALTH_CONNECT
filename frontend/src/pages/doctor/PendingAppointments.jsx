@@ -115,7 +115,7 @@ export default function PendingAppointments() {
                         leftIcon={<FaCheck />} 
                         colorScheme="green" 
                         flex={1}
-                        onClick={() => handleUpdateStatus(apt.id, 'DONE')}
+                        onClick={() => handleUpdateStatus(apt.id, 'COMPLETED')}
                       >
                         Mark as Done
                       </Button>

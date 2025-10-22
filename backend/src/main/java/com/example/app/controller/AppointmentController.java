@@ -2,6 +2,7 @@ package com.example.app.controller;
 
 import com.example.app.dto.AppointmentDTO;
 import com.example.app.dto.AppointmentRequest;
+import com.example.app.dto.UpdateAppointmentTimeRequest;
 import com.example.app.dto.UpdateStatusRequest;
 import com.example.app.dto.UserDTO;
 import com.example.app.entity.Appointment;
@@ -126,7 +127,7 @@ public class AppointmentController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<Map<String, String>> updateAppointmentTime(@PathVariable Long id,
-                                                                      @Valid @RequestBody AppointmentRequest request,
+                                                                      @Valid @RequestBody UpdateAppointmentTimeRequest request,
                                                                       Authentication auth) {
         User patient = authUtil.getAuthenticatedUser(auth);
         

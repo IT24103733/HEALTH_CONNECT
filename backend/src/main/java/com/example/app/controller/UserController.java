@@ -83,4 +83,17 @@ public class UserController {
         long count = sessionService.getActiveUsersCount();
         return ResponseEntity.ok(Map.of("activeUsers", count));
     }
+
+    @PutMapping("/{id}/role")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<UserDTO> updateUserRole(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String roleStr = request.get("role");
+        try {
+            com.example.app.entity.User.Role newRole = com.example.app.entity.User.Role.valueOf(roleStr);
+            UserDTO updated = UserDTO.fromEntity(userService.updateUserRole(id, newRole));
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid role: " + roleStr);
+        }
+    }
 }

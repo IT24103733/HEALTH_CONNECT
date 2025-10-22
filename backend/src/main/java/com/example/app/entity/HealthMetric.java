@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "health_metrics")
+@Table(name = "health_metrics", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"userId", "date"})
+})
 public class HealthMetric {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -85,5 +87,29 @@ public class HealthMetric {
 
     public void setHealthScore(Integer healthScore) {
         this.healthScore = healthScore;
+    }
+
+    public void setCaloriesIntake(Integer caloriesIntake) {
+        this.caloriesIntake = caloriesIntake;
+    }
+
+    public void setExerciseMinutes(Integer exerciseMinutes) {
+        this.exerciseMinutes = exerciseMinutes;
+    }
+
+    public void setWeight(Double weight) {
+        this.weight = weight;
+    }
+
+    public void setSleepHours(Integer sleepHours) {
+        this.sleepHours = sleepHours;
+    }
+
+    public void setWaterIntake(Integer waterIntake) {
+        this.waterIntake = waterIntake;
+    }
+
+    public void setSymptoms(String symptoms) {
+        this.symptoms = symptoms;
     }
 }

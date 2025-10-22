@@ -31,8 +31,15 @@ public class HealthMetricService {
                                  Integer waterIntake, String symptoms) {
         String sanitizedSymptoms = htmlSanitizer.sanitize(symptoms);
         
-        HealthMetric metric = new HealthMetric(null, userId, date, caloriesIntake,
-                exerciseMinutes, weight, sleepHours, waterIntake, sanitizedSymptoms, 0);
+        HealthMetric metric = healthMetricRepository.findByUserIdAndDate(userId, date)
+                .orElse(new HealthMetric(null, userId, date, null, null, null, null, null, null, 0));
+        
+        metric.setCaloriesIntake(caloriesIntake);
+        metric.setExerciseMinutes(exerciseMinutes);
+        metric.setWeight(weight);
+        metric.setSleepHours(sleepHours);
+        metric.setWaterIntake(waterIntake);
+        metric.setSymptoms(sanitizedSymptoms);
         
         List<HealthMetric> recentMetrics = List.of(metric);
         int score = healthScoreCalculator.predictScore(recentMetrics);
@@ -79,5 +86,17 @@ public class HealthMetricService {
                 })
                 .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteHealthMetric(Long id, Long userId) {
+        HealthMetric metric = healthMetricRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Health metric not found"));
+        
+        if (!metric.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized access");
+        }
+        
+        healthMetricRepository.delete(metric);
     }
 }

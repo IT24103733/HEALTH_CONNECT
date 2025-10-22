@@ -10,4 +10,5 @@ import java.util.List;
 public interface HealthMetricRepository extends JpaRepository<HealthMetric, Long> {
     List<HealthMetric> findByUserIdOrderByDateDesc(Long userId);
     List<HealthMetric> findByUserIdAndDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
+    java.util.Optional<HealthMetric> findByUserIdAndDate(Long userId, LocalDate date);
 }

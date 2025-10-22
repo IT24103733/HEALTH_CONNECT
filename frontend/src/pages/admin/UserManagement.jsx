@@ -37,7 +37,7 @@ export default function UserManagement() {
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.id.toLowerCase().includes(searchQuery.toLowerCase())
+    user.id.toString().includes(searchQuery)
   )
 
   const handleEdit = (user) => {
@@ -179,17 +179,7 @@ export default function UserManagement() {
                     </FormControl>
                     <FormControl>
                       <FormLabel>Role</FormLabel>
-                      <Select 
-                        value={selectedUser.role}
-                        onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value})}
-                      >
-                        <option value="PATIENT">Patient</option>
-                        <option value="DOCTOR">Doctor</option>
-                        <option value="DIETITIAN">Dietitian</option>
-                        <option value="SUPPORT_STAFF">Support Staff</option>
-                        <option value="SYSTEM_ADMIN">System Admin</option>
-                        <option value="SUPER_ADMIN">Super Admin</option>
-                      </Select>
+                      <Input value={selectedUser.role} isReadOnly bg={colorMode === 'dark' ? '#0b1437' : 'gray.100'} />
                     </FormControl>
                   </VStack>
                 </ModalBody>

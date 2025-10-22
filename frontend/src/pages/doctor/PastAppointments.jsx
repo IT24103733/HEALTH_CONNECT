@@ -18,7 +18,7 @@ export default function PastAppointments() {
     try {
       setLoading(true)
       const data = await api.getMyAppointments()
-      const past = data.filter(apt => apt.status === 'DONE' || apt.status === 'CANCELLED').sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
+      const past = data.filter(apt => apt.status === 'COMPLETED' || apt.status === 'CANCELLED').sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
       setAppointments(past)
     } catch (error) {
       toast({ title: 'Error loading appointments', description: error.message, status: 'error', duration: 5000, position: 'top' })

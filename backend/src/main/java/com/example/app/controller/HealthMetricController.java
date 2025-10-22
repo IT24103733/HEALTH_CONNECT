@@ -99,4 +99,12 @@ public class HealthMetricController {
         
         return ResponseEntity.ok(healthMetricService.getWeeklyTrends(userId, startDate, endDate));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<Void> deleteHealthMetric(@PathVariable Long id, Authentication auth) {
+        User currentUser = authUtil.getAuthenticatedUser(auth);
+        healthMetricService.deleteHealthMetric(id, currentUser.getId());
+        return ResponseEntity.noContent().build();
+    }
 }

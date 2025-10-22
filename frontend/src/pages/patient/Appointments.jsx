@@ -185,6 +185,7 @@ export default function Appointments() {
                             <HStack>
                               <Text fontWeight="bold" fontSize="xl">{clinician?.name}</Text>
                               {apt.status === 'CANCELLED' && <Badge colorScheme="red" fontSize="sm">CANCELLED</Badge>}
+                              {apt.status === 'COMPLETED' && <Badge colorScheme="green" fontSize="sm">COMPLETED</Badge>}
                             </HStack>
                             {clinician && (
                               <>

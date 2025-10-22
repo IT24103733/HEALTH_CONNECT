@@ -18,12 +18,35 @@ export default function DietRequest() {
   })
 
   const handleSubmit = async () => {
-    const user = getCurrentUser()
+    if (!formData.age || !formData.weight || !formData.height || !formData.dietaryRestrictions || !formData.healthGoals || !formData.activityLevel) {
+      toast({ title: 'Missing fields', description: 'Please fill in all fields', status: 'error', duration: 3000, position: 'top' })
+      return
+    }
+
+    const age = parseInt(formData.age)
+    const weight = parseFloat(formData.weight)
+    const height = parseFloat(formData.height)
+
+    if (isNaN(age) || age < 1 || age > 120) {
+      toast({ title: 'Invalid age', description: 'Age must be between 1 and 120', status: 'error', duration: 3000, position: 'top' })
+      return
+    }
+
+    if (isNaN(weight) || weight < 20 || weight > 300) {
+      toast({ title: 'Invalid weight', description: 'Weight must be between 20 and 300 kg', status: 'error', duration: 3000, position: 'top' })
+      return
+    }
+
+    if (isNaN(height) || height < 50 || height > 250) {
+      toast({ title: 'Invalid height', description: 'Height must be between 50 and 250 cm', status: 'error', duration: 3000, position: 'top' })
+      return
+    }
+
     try {
       await api.createDietRequest({
-        age: parseInt(formData.age),
-        weight: parseFloat(formData.weight),
-        height: parseFloat(formData.height),
+        age,
+        weight,
+        height,
         dietaryRestrictions: formData.dietaryRestrictions,
         healthGoals: formData.healthGoals,
         activityLevel: formData.activityLevel
@@ -57,27 +80,27 @@ export default function DietRequest() {
 
           <Box bg={colorMode === 'dark' ? '#1a2559' : 'white'} p={8} rounded="xl" shadow="md">
             <VStack spacing={6}>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel fontWeight="semibold">Age</FormLabel>
-                <Input placeholder="25" value={formData.age} onChange={(e) => setFormData({...formData, age: e.target.value})} />
+                <Input type="number" placeholder="25" min="1" max="120" value={formData.age} onChange={(e) => setFormData({...formData, age: e.target.value})} />
               </FormControl>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel fontWeight="semibold">Weight (kg)</FormLabel>
-                <Input placeholder="70" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} />
+                <Input type="number" placeholder="70" min="20" max="300" step="0.1" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} />
               </FormControl>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel fontWeight="semibold">Height (cm)</FormLabel>
-                <Input placeholder="175" value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} />
+                <Input type="number" placeholder="175" min="50" max="250" value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} />
               </FormControl>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel fontWeight="semibold">Dietary Restrictions</FormLabel>
                 <Textarea placeholder="Vegetarian, gluten-free, etc." value={formData.dietaryRestrictions} onChange={(e) => setFormData({...formData, dietaryRestrictions: e.target.value})} />
               </FormControl>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel fontWeight="semibold">Health Goals</FormLabel>
                 <Textarea placeholder="Weight loss, muscle gain, etc." value={formData.healthGoals} onChange={(e) => setFormData({...formData, healthGoals: e.target.value})} />
               </FormControl>
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel fontWeight="semibold">Activity Level</FormLabel>
                 <Select placeholder="Select activity level" value={formData.activityLevel} onChange={(e) => setFormData({...formData, activityLevel: e.target.value})}>
                   <option value="SEDENTARY">Sedentary</option>
