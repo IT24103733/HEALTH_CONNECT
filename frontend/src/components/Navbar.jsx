@@ -14,8 +14,6 @@ export default function Navbar() {
           <Text fontSize="xl" fontWeight="bold" color="brand.500">Health Connect</Text>
         </HStack>
         <HStack spacing={8} alignItems="center">
-          <Link to="/"><Text cursor="pointer" _hover={{color: 'brand.500'}}>Features</Text></Link>
-          <Link to="/"><Text cursor="pointer" _hover={{color: 'brand.500'}}>About</Text></Link>
           <Link to="/login"><Button variant="ghost">Login</Button></Link>
           <IconButton
             icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}
