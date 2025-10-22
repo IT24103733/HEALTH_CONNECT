@@ -2,6 +2,8 @@ package com.example.app.controller;
 
 import com.example.app.dto.CarePlanDTO;
 import com.example.app.dto.CarePlanRequest;
+import com.example.app.dto.UpdateAdherenceRequest;
+import com.example.app.dto.UpdateCarePlanContentRequest;
 import com.example.app.entity.CarePlan;
 import com.example.app.entity.User;
 import com.example.app.exception.UnauthorizedException;
@@ -63,21 +65,19 @@ public class CarePlanController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('DIETITIAN', 'DOCTOR')")
     public ResponseEntity<CarePlanDTO> updateCarePlan(@PathVariable Long id, 
-                                                      @RequestBody Map<String, String> request,
+                                                      @Valid @RequestBody UpdateCarePlanContentRequest request,
                                                       Authentication auth) {
         User currentUser = authUtil.getAuthenticatedUser(auth);
         
-        String content = request.get("content");
-        CarePlanDTO plan = CarePlanDTO.fromEntity(carePlanService.updateCarePlan(id, content, currentUser.getId()));
+        CarePlanDTO plan = CarePlanDTO.fromEntity(carePlanService.updateCarePlan(id, request.getContent(), currentUser.getId()));
         return ResponseEntity.ok(plan);
     }
 
     @PutMapping("/{id}/adherence")
     @PreAuthorize("hasAnyRole('DIETITIAN', 'DOCTOR', 'PATIENT')")
     public ResponseEntity<Void> updateAdherence(@PathVariable Long id, 
-                                               @RequestBody Map<String, Double> request) {
-        Double adherence = request.get("adherencePercentage");
-        carePlanService.updateAdherence(id, adherence);
+                                               @Valid @RequestBody UpdateAdherenceRequest request) {
+        carePlanService.updateAdherence(id, request.getAdherencePercentage());
         return ResponseEntity.ok().build();
     }
 

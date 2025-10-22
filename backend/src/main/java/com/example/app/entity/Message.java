@@ -25,18 +25,22 @@ public class Message {
     @Column(nullable = false)
     private boolean isRead;
 
+    @Column(nullable = false)
+    private Long ticketId;
+
     protected Message() {
         this.timestamp = LocalDateTime.now();
         this.isRead = false;
     }
 
-    public Message(Long id, Long senderId, Long recipientId, String content, LocalDateTime timestamp) {
+    public Message(Long id, Long senderId, Long recipientId, String content, LocalDateTime timestamp, Long ticketId) {
         this.id = id;
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.content = content;
         this.timestamp = timestamp;
         this.isRead = false;
+        this.ticketId = ticketId;
     }
 
     public Long getId() {
@@ -65,5 +69,9 @@ public class Message {
 
     public void setRead(boolean read) {
         isRead = read;
+    }
+
+    public Long getTicketId() {
+        return ticketId;
     }
 }

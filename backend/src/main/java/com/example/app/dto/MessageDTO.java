@@ -10,15 +10,17 @@ public class MessageDTO {
     private final String content;
     private final LocalDateTime timestamp;
     private final boolean isRead;
+    private final Long ticketId;
 
     public MessageDTO(Long id, Long senderId, Long recipientId, String content, 
-                     LocalDateTime timestamp, boolean isRead) {
+                     LocalDateTime timestamp, boolean isRead, Long ticketId) {
         this.id = id;
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.content = content;
         this.timestamp = timestamp;
         this.isRead = isRead;
+        this.ticketId = ticketId;
     }
 
     public Long getId() {
@@ -45,9 +47,13 @@ public class MessageDTO {
         return isRead;
     }
 
+    public Long getTicketId() {
+        return ticketId;
+    }
+
     public static MessageDTO fromEntity(Message message) {
         return new MessageDTO(message.getId(), message.getSenderId(), 
                             message.getRecipientId(), message.getContent(), 
-                            message.getTimestamp(), message.isRead());
+                            message.getTimestamp(), message.isRead(), message.getTicketId());
     }
 }

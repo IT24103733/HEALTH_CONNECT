@@ -1,7 +1,9 @@
 package com.example.app.controller;
 
+import com.example.app.dto.AccessLogDTO;
 import com.example.app.entity.AccessLog;
 import com.example.app.service.AccessLogService;
+import java.util.stream.Collectors;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,27 +25,37 @@ public class ComplianceController {
 
     @GetMapping("/logs")
     @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<List<AccessLog>> getAccessLogs(
+    public ResponseEntity<List<AccessLogDTO>> getAccessLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<AccessLog> logs;
         if (startDate != null && endDate != null) {
-            return ResponseEntity.ok(accessLogService.getLogsInRange(startDate, endDate));
+            logs = accessLogService.getLogsInRange(startDate, endDate);
+        } else {
+            logs = accessLogService.getAllLogs();
         }
         
-        return ResponseEntity.ok(accessLogService.getAllLogs());
+        return ResponseEntity.ok(logs.stream()
+                .map(AccessLogDTO::fromEntity)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/logs/user/{userId}")
     @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<List<AccessLog>> getUserLogs(
+    public ResponseEntity<List<AccessLogDTO>> getUserLogs(
             @PathVariable Long userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<AccessLog> logs;
         if (startDate != null && endDate != null) {
-            return ResponseEntity.ok(accessLogService.getUserLogsInRange(userId, startDate, endDate));
+            logs = accessLogService.getUserLogsInRange(userId, startDate, endDate);
+        } else {
+            logs = accessLogService.getUserLogs(userId);
         }
 
-        return ResponseEntity.ok(accessLogService.getUserLogs(userId));
+        return ResponseEntity.ok(logs.stream()
+                .map(AccessLogDTO::fromEntity)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/export/csv")

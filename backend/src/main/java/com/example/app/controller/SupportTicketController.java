@@ -26,7 +26,7 @@ public class SupportTicketController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('PATIENT')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'DIETITIAN')")
     public ResponseEntity<SupportTicketDTO> createTicket(@Valid @RequestBody SupportTicketRequest request,
                                                          Authentication auth) {
         User user = authUtil.getAuthenticatedUser(auth);
@@ -62,18 +62,18 @@ public class SupportTicketController {
     }
 
     @GetMapping("/my-tickets")
-    @PreAuthorize("hasAnyRole('PATIENT', 'SUPPORT_STAFF')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'DIETITIAN', 'SUPPORT_STAFF')")
     public ResponseEntity<List<SupportTicketDTO>> getMyTickets(Authentication auth) {
         User user = authUtil.getAuthenticatedUser(auth);
         
-        if (user.getRole() == User.Role.PATIENT) {
-            return ResponseEntity.ok(ticketService.getPatientTickets(user.getId()));
+        if (user.getRole() == User.Role.SUPPORT_STAFF) {
+            return ResponseEntity.ok(ticketService.getStaffTickets(user.getId()));
         }
-        return ResponseEntity.ok(ticketService.getStaffTickets(user.getId()));
+        return ResponseEntity.ok(ticketService.getPatientTickets(user.getId()));
     }
 
     @GetMapping("/{id}/chat-access")
-    @PreAuthorize("hasAnyRole('PATIENT', 'SUPPORT_STAFF')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'DIETITIAN', 'SUPPORT_STAFF')")
     public ResponseEntity<Map<String, Boolean>> checkChatAccess(@PathVariable Long id, Authentication auth) {
         User user = authUtil.getAuthenticatedUser(auth);
         

@@ -21,41 +21,17 @@ public class MessageService {
     }
 
     @Transactional
-    public Message sendMessage(Long senderId, Long recipientId, String content) {
-        String sanitizedContent = htmlSanitizer.sanitize(content);
-        Message message = new Message(null, senderId, recipientId, sanitizedContent, LocalDateTime.now());
-        return messageRepository.save(message);
-    }
-
-    @Transactional
     public Message sendTicketMessage(Long senderId, Long recipientId, String content, Long ticketId) {
         String sanitizedContent = htmlSanitizer.sanitize(content);
-        Message message = new Message(null, senderId, recipientId, sanitizedContent, LocalDateTime.now());
+        Message message = new Message(null, senderId, recipientId, sanitizedContent, LocalDateTime.now(), ticketId);
         return messageRepository.save(message);
     }
 
-    public List<MessageDTO> getInbox(Long userId) {
-        return messageRepository.findByRecipientIdOrderByTimestampDesc(userId).stream()
+    public List<MessageDTO> getTicketMessages(Long ticketId) {
+        return messageRepository.findByTicketIdOrderByTimestampAsc(ticketId).stream()
                 .map(MessageDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    public List<MessageDTO> getSentMessages(Long userId) {
-        return messageRepository.findBySenderIdOrderByTimestampDesc(userId).stream()
-                .map(MessageDTO::fromEntity)
-                .collect(Collectors.toList());
-    }
 
-    @Transactional
-    public void markAsRead(Long messageId, Long userId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
-        
-        if (!message.getRecipientId().equals(userId)) {
-            throw new RuntimeException("Cannot mark other users' messages as read");
-        }
-        
-        message.setRead(true);
-        messageRepository.save(message);
-    }
 }

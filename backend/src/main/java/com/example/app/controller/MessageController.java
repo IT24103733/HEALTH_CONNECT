@@ -28,18 +28,8 @@ public class MessageController {
         this.authUtil = authUtil;
     }
 
-    @PostMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<MessageDTO> sendMessage(@Valid @RequestBody MessageRequest request, Authentication auth) {
-        User sender = authUtil.getAuthenticatedUser(auth);
-        
-        MessageDTO message = MessageDTO.fromEntity(
-                messageService.sendMessage(sender.getId(), request.getRecipientId(), request.getContent()));
-        return ResponseEntity.ok(message);
-    }
-
     @PostMapping("/ticket/{ticketId}")
-    @PreAuthorize("hasAnyRole('PATIENT', 'SUPPORT_STAFF')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'DIETITIAN', 'SUPPORT_STAFF')")
     public ResponseEntity<MessageDTO> sendTicketMessage(@PathVariable Long ticketId,
                                                         @Valid @RequestBody MessageRequest request,
                                                         Authentication auth) {
@@ -54,42 +44,30 @@ public class MessageController {
             throw new UnauthorizedException("Unauthorized access to ticket chat");
         }
         
+        Long recipientId = sender.getId().equals(ticket.getPatientId()) 
+                ? ticket.getAssignedStaffId() 
+                : ticket.getPatientId();
+        
         MessageDTO message = MessageDTO.fromEntity(
-                messageService.sendTicketMessage(sender.getId(), request.getRecipientId(), 
+                messageService.sendTicketMessage(sender.getId(), recipientId, 
                         request.getContent(), ticketId));
         return ResponseEntity.ok(message);
     }
 
-    @GetMapping("/inbox/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<MessageDTO>> getInbox(@PathVariable Long userId, Authentication auth) {
+    @GetMapping("/ticket/{ticketId}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'DIETITIAN', 'SUPPORT_STAFF')")
+    public ResponseEntity<List<MessageDTO>> getTicketMessages(@PathVariable Long ticketId, Authentication auth) {
         User currentUser = authUtil.getAuthenticatedUser(auth);
         
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("Cannot access other users' inbox");
+        SupportTicket ticket = ticketService.getTicketById(ticketId);
+        
+        boolean hasAccess = ticket.getPatientId().equals(currentUser.getId()) || 
+                           (ticket.getAssignedStaffId() != null && ticket.getAssignedStaffId().equals(currentUser.getId()));
+        
+        if (!hasAccess) {
+            throw new UnauthorizedException("Unauthorized access to ticket chat");
         }
         
-        return ResponseEntity.ok(messageService.getInbox(userId));
-    }
-
-    @GetMapping("/sent/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<MessageDTO>> getSentMessages(@PathVariable Long userId, Authentication auth) {
-        User currentUser = authUtil.getAuthenticatedUser(auth);
-        
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("Cannot access other users' sent messages");
-        }
-        
-        return ResponseEntity.ok(messageService.getSentMessages(userId));
-    }
-
-    @PutMapping("/{messageId}/read")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long messageId, Authentication auth) {
-        User currentUser = authUtil.getAuthenticatedUser(auth);
-        
-        messageService.markAsRead(messageId, currentUser.getId());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(messageService.getTicketMessages(ticketId));
     }
 }
