@@ -3,19 +3,7 @@
 ## Overview
 The messaging system has been refactored to work exclusively through support tickets. Direct user-to-user messaging has been removed.
 
-## Database Reset Required
 
-### Steps to Reset Database:
-```bash
-# Option 1: Using MySQL command line
-mysql -u your_username -p < database_reset.sql
-
-# Option 2: Manual commands
-mysql -u your_username -p
-DROP DATABASE IF EXISTS health_connect;
-CREATE DATABASE health_connect;
-exit;
-```
 
 After resetting the database, start the application and Hibernate will automatically create all tables based on the JPA entities.
 
